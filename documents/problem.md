@@ -47,7 +47,7 @@ movesを10回タイムアウトした場合、そのプレイヤーはサーバ�
 
 # 4. The lambda punter protocol
 
-JSON形式. Online modeとOffline modeが存在する
+JSON形式. Online modeとOffline modeが存在する  
 
 * Online mode
 
@@ -65,7 +65,13 @@ keeping hold of the game state for each punter alongside each message.
 ## 4.1 メッセージ
 
 全てのデータのやりとりはJSONで行われ、形式は *n:json*  
-*n*は整数でjsonの文字数, *json*はJSON形式の文字列  
+
+* n
+  - *json*のサイズ (単位: byte)
+  - 整数
+  - 9桁(1GB)を超えない
+* json
+  - 後述する形式のJSON文字列
 
 以下の説明では*n*を省略する
 
