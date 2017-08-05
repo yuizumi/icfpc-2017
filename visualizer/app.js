@@ -1,35 +1,27 @@
-var Operation = function(){
-  this.returnData = function(response){
-    if('map' in response){
-      return this.getmapData(response);
-    }else if('claim' in response){
-      return this.getMoveData(response);
-    }else if('pass' in response){
-      return this.getPassData(response);
-    }else if('stop' in response){
-      return this.getScoreData(response);
-    }
-  }
-}
+var Operation = function(){}
 
-Operation.prototype.getmapData = function (response) {
+Operation.prototype.getMapData = function (response) {
   let nodes = [];
   let edges = [];
   let lambdas = [];
-  response['map']['sites'].forEach(function(node){
+  response['sites'].forEach(function(node){
     nodes.push(node['id']);
   });
   let comp = function(a,b){
     return a-b;
   }
   nodes.sort(comp);
-  response['map']['rivers'].forEach(function(river){
-    let edge = []
-    edge.push(river['source']);
-    edge.push(river['target']);
-    edges.push(edge);
+  response['rivers'].forEach(function(river){
+    let s = river['source'];
+    let t = river['target'];
+    if(s>t){
+      let tmp = s;
+      s = t;
+      t = tmp;
+    }
+    edges.push([s,t]);
   });
-  response['map']['mines'].forEach(function(mine){
+  response['mines'].forEach(function(mine){
     lambdas.push(mine)
   });
   data = {"nodes":nodes,"edges":edges,"lambdas":lambdas};
@@ -37,29 +29,15 @@ Operation.prototype.getmapData = function (response) {
 };
 
 Operation.prototype.getMoveData = function(response){
-  let punter = response['claim']['punter'];
-  let s = response['claim']['source'];
-  let t = response['claim']['target'];
-  console.log(s,t);
+  let punter = response['punter'];
+  let s = response['source'];
+  let t = response['target'];
   if(s>t){
     let tmp = s;
     s = t;
     t = tmp;
   }
-  console.log(s,t);
   return {"claim":{"p":punter,"s":s,"t":t}};
-}
-
-Operation.prototype.getPassData = function(response){
-  return {"pass":"pass"};
-}
-
-Operation.prototype.getScoreData = function(response){
-  let scores = []
-  response['stop']['scores'].forEach(function(score){
-    scores.push(score);
-  });
-  return {"scores":scores};
 }
 
 var Game = function(gameId,selector){
@@ -89,19 +67,18 @@ Game.prototype.updateVis = function (data) {
 };
 
 Game.prototype.updateGame = function () {
-  let url = 'log/'+String(this.getGameId())+'/'+String(this.getTurn());
+  let url = 'log/'+String(this.getGameId())+'/'+String(this.getTurn())+'.json';
   let jsonlog = $('#jsonlog');
   $.ajax({
     type:"GET",
     dataType:"json",
-    url:url,
-    this:this
+    url:url
     }
   ).done((function(d) {return function(response,status,jqXHR){
     let data = {};
     let ope = new Operation();
     jsonlog.val(jqXHR['responseText']);
-    data = ope.returnData(response);
+    data = ope.getMoveData(response['claim']);
     d.updateTurn();
     d.updateVis(data);
   };})(this)).fail(function(response,status,error){
@@ -110,12 +87,32 @@ Game.prototype.updateGame = function () {
   });
 };
 
+Game.prototype.initMap = function (){
+  let url = 'log/'+String(this.getGameId())+'/map.json';
+  let jsonlog = $('#jsonlog');
+  $.ajax({
+    type:"GET",
+    dataType:"json",
+    url:url
+    }
+  ).done((function(d) {return function(response,status,jqXHR){
+    let data = {};
+    let ope = new Operation();
+    jsonlog.val(jqXHR['responseText']);
+    data = ope.getMapData(response);
+    d.updateVis(data);
+  };})(this)).fail(function(response,status,error){
+    jsonlog.val(error);
+    alert("Cannot download map data!")
+  });
+}
+
 var game = {};
 var timer = {};
 
 $('#play').on('click',function(){
   game = new Game(Number($('#gamenumber').val()),"#main-visualize-cell");
-  game.updateGame();
+  game.initMap();
 });
 
 $('#next').on('click',function(){
