@@ -1,77 +1,33 @@
-class Punter:
-    # emulatorがいじる状態（別クラスにすべきだが）
-    name = None
-    id = None
-    state = None
-    last_move = None
+import numpy as np
+from scipy.sparse import csgraph
+from punter_client import PunterClient
 
-    # 以下はテスト用実装。全てステートレス。
-    def start_handshake(self):
-        return {'me': 'suzukazeaoba'}
+class PunterState:
+    def __init__(self, client):
+        self.client = client
+        self.name = None
+        self.id = None
+        self.state = None
+        self.moves = []
+        self.last_move = None
 
-    def end_handshake(self, input_dict):
-        return
+def emulate(punter_clients, map_dict):
+    punters = []
 
-    def setup(self, input_dict):
-        return {
-            'ready': input_dict['punter'],
-            'state': input_dict.copy()}
-
-    def move(self, input_dict):
-        rivers = input_dict['state']['map']['rivers']
-        moves = input_dict['move']['moves']
-        # stateを更新
-        for move in moves:
-            if 'claim' not in move: continue
-            claim = move['claim']
-            for river in rivers:
-                if (claim['source'] == river['source']
-                    and claim['target'] == river['target']):
-                    river['punter'] = claim['punter']
-        # punterのsetされていないriverを選ぶ
-        choices = [r for r in rivers if 'punter' not in r]
-        if len(choices) == 0:
-            return {'pass': {'punter': punter.id}}
-        else:
-            import random
-            r = random.choice(choices)
-            return {'claim': {
-                'punter': input_dict['state']['punter'],
-                'source': r['source'],
-                'target': r['target']}}
-
-class ProcessPunter(Punter):
-    def __init__(self, command):
-        self.command = command
-
-    def start_handshake(self):
-        raise "todo"
-
-    def end_handshake(self, input_dict):
-        raise "todo"
-
-    def setup(self, input_dict):
-        # 区別はAIバイナリ側でする
-        return move(input_dict)
-
-    def move(self, input_dict):
-        # child_process.run(command, to_json(input_dict)) 的なこと
-        raise "todo"
-
-def emulate(punters, map_dict):
     # setup
     punter_id = 0
-    for punter in punters:
+    for client in punter_clients:
+        punter = PunterState(client)
+        punters.append(punter)
         # handshake
-        hand_req = punter.start_handshake()
+        hand_req = punter.client.start_handshake()
         punter.name = hand_req['me']
         punter.id = punter_id
         punter_id += 1
-        # TODO: pdfのAliceの例に従うとこうなる？
         punter.last_move = {'pass': {'punter': punter.id}}
-        punter.end_handshake({'you': punter.name})
+        punter.client.end_handshake({'you': punter.name})
         # setup
-        ready = punter.setup({
+        ready = punter.client.setup({
             'punter': punter.id,
             'punters': len(punters),
             'map': map_dict })
@@ -83,11 +39,10 @@ def emulate(punters, map_dict):
     all_moves = []
     for turn in range(len(map_dict['rivers'])):
         punter = punters[punter_index]
-        hand_req = punter.start_handshake()
+        hand_req = punter.client.start_handshake()
         assert hand_req['me'] == punter.name
-        punter.end_handshake({'you': punter.name})
-        move = punter.move({
-            # TODO: pdf見る限り全プレーヤーの直前のみの履歴っぽい？
+        punter.client.end_handshake({'you': punter.name})
+        move = punter.client.play({
             'move': {'moves': [p.last_move for p in punters]},
             'state': punter.state})
         # save state
@@ -107,22 +62,61 @@ def emulate(punters, map_dict):
                 move = {'pass': {'punter': punter.id}}
         else:
             move = {'pass': {'punter': punter.id}}
+        del move['state']
         print(move)
+        punter.moves.append(move)
         all_moves.append(move)
         punter.last_move = move
         punter_index = (punter_index + 1) % len(punters)
 
-    # score
+    # calc score
+    site_count = len(map_dict['sites'])
+    site_to_index = {}
+    for i in range(site_count):
+        site_to_index[map_dict['sites'][i]['id']] = i
+    graph = np.zeros([site_count] * 2, np.bool)
+    for r in map_dict['rivers']:
+        s = site_to_index[r['source']]
+        t = site_to_index[r['target']]
+        graph[s, t] = True
+        graph[t, s] = True
+    distance = csgraph.floyd_warshall(graph, False, False, True)
+    for punter in punters:
+        subgraph = np.zeros_like(graph)
+        for m in punter.moves:
+            if 'claim' not in m: continue
+            s = site_to_index[m['claim']['source']]
+            t = site_to_index[m['claim']['target']]
+            subgraph[s, t] = True
+            subgraph[t, s] = True
+        subdist = csgraph.floyd_warshall(subgraph, False, False, True)
+        punter.score = 0
+        for mine in map_dict['mines']:
+            mine_index = site_to_index[mine]
+            for i in range(site_count):
+                if not np.isinf(subdist[mine_index, i]):
+                    punter.score += int(distance[mine_index, i]) ** 2
+
+    # send score
+    moves = [p.last_move for p in punters]
+    scores = [{'punter': p.id, 'score': p.score} for p in punters]
+    for punter in punters:
+        hand_req = punter.client.start_handshake()
+        assert hand_req['me'] == punter.name
+        punter.client.stop({
+            'stop': {'moves': moves, 'scores': scores},
+            'state': punter.state})
+
+    # log
     print(map_dict)
+    print(scores)
 
-
-# python3 -M emulate map.json "./ai1" "./ai2"
-# をargparseして↓のように呼び出す
-emulate([Punter(), Punter()], {
+# python3 -m emulate map.json "./ai1" "./ai2"
+emulate([PunterClient(), PunterClient()], {
     'sites': [{'id': 1}, {'id': 2}, {'id': 3}, {'id': 4}],
     'rivers': [
         {'source': 1, 'target': 2},
         {'source': 2, 'target': 3},
         {'source': 3, 'target': 4},
         {'source': 1, 'target': 4}],
-    'mines': [1, 5]})
+    'mines': [1, 3]})
