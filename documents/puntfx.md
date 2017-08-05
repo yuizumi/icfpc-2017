@@ -1,5 +1,5 @@
-λ Punter FX (web interface): http://punter.inf.ed.ac.uk/puntfx/
-Game Status: http://punter.inf.ed.ac.uk/status.html
+* λ Punter FX (web interface): http://punter.inf.ed.ac.uk/puntfx/
+* Game Status: http://punter.inf.ed.ac.uk/status.html
 
 # 概要
 
