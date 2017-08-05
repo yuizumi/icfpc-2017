@@ -23,7 +23,7 @@ def emulate(punter_clients, map_dict):
         # handshake
         hand_req = punter.client.start_handshake()
         punter.name = hand_req['me']
-        punter.id = len(punters)
+        punter.id = len(punters) - 1
         punter.last_move = {'pass': {'punter': punter.id}}
         punter.client.end_handshake({'you': punter.name})
         # setup
@@ -103,6 +103,7 @@ def emulate(punter_clients, map_dict):
     for punter in punters:
         hand_req = punter.client.start_handshake()
         assert hand_req['me'] == punter.name
+        punter.client.end_handshake({'you': punter.name})
         punter.client.stop({
             'stop': {'moves': moves, 'scores': scores},
             'state': punter.state})

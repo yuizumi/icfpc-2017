@@ -55,4 +55,3 @@ class ProcessPunterClient(PunterClient):
         
     def stop(self, input_dict):
         self.write(input_dict)
-        return self.read()
