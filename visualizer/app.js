@@ -1,6 +1,24 @@
 function update_map(response){
   if('map' in response){
     console.log('map');
+    let nodes = [];
+    let edges = [];
+    let lambdas = [];
+    response['map']['sites'].forEach(function(node){
+      nodes.push(node['id']);
+    });
+    response['map']['rivers'].forEach(function(river){
+      let edge = []
+      edge.push(river['source']);
+      edge.push(river['target']);
+      edges.push(edge);
+    });
+    response['map']['mines'].forEach(function(mine){
+      lambdas.push(mine)
+    });
+    console.log(nodes);
+    console.log(edges);
+    console.log(lambdas);
         //Visualizer.update(vcell,data)
   }
   if('claim' in response){
