@@ -6,7 +6,7 @@ using namespace std;
 constexpr auto kPass = Move::Action::kPass;
 
 class NullAI : public AI {
-    void Init(int punter, int num_punters, const Map& map) override {}
+    void Init(int punter, int num_punters, const Map* map) override {}
 
     void LoadState(Json&& json) override {}
     Json SaveState() override { return Json(); }
