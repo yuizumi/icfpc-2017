@@ -80,7 +80,7 @@ keeping hold of the game state for each punter alongside each message.
 
 * Handshake
 
-**P->S {"me": *name*}**
+**P->S {"me": *name*}**  
 **S->P {"you": *name*}**
 
 * Setup
