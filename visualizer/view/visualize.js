@@ -4,17 +4,18 @@ var Visualizer = function (rootSelector) {
      */
 
     this.init = function () {
-        this._rootSelector = rootSelector;
-        this._mapData = {};
+        this.RootSelector = rootSelector;
+        this.MapData = {};
+        this.NodeIndexDic = {};
         console.log('selector', rootSelector);
     };
 
     this.setMapData = function (mapData) {
-        this._mapData = mapData;
+        this.MapData = JSON.stringify(mapData);
     };
 
     this.getMapData = function () {
-        return this._mapData;
+        return JSON.parse(this.MapData);
     };
 
     // マップの初期化
@@ -26,9 +27,19 @@ var Visualizer = function (rootSelector) {
          lambdas: [1 ...]
          }
          */
-
-        console.log('map_data:', data);
+        
+        this.NodeIndexDic = {};
+        for (var i = 0; i < data.nodes.length; i++) {
+            this.NodeIndexDic[data.nodes[i]] = i;
+        }
+        
         this.setMapData(data);
+        createGraph(
+            this.RootSelector, 
+            this.getMapData(),
+            this.NodeIndexDic
+        );
+        // Test();
         return 0;
     };
 
@@ -36,6 +47,7 @@ var Visualizer = function (rootSelector) {
     // エッジの更新
     this.update = function (src_node_id, dst_node_id, user_id) {
         console.log(src_node_id + '->' + dst_node_id + ': ' + user_id);
+        updateEdge(this.RootSelector, src_node_id, dst_node_id, user_id);
         return 0;
     };
 
@@ -44,18 +56,21 @@ var Visualizer = function (rootSelector) {
     this.init();
 };
 
-
 // テスト
 var VisualizeTest = function () {
     var vis = new Visualizer('#main-visualize-cell');
 
     vis.createMap({
-        nodes: [1, 2, 3, 5],
-        edged: [[1, 2], [1, 5], [2, 3]],
+        nodes: [0, 1, 2, 5],
+        edges: [
+            [0, 5],
+            [0, 1],
+            [0, 2]
+        ],
         lambdas: [1]
     });
 
-    vis.update(1, 2, 0);
+    vis.update(0, 1, 1);
 };
 
-VisualizeTest();
+// VisualizeTest();
