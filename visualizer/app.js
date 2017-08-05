@@ -13,13 +13,16 @@ var Operation = function(){
 }
 
 Operation.prototype.getmapData = function (response) {
-  console.log('map');
   let nodes = [];
   let edges = [];
   let lambdas = [];
   response['map']['sites'].forEach(function(node){
     nodes.push(node['id']);
   });
+  let comp = function(a,b){
+    return a-b;
+  }
+  nodes.sort(comp);
   response['map']['rivers'].forEach(function(river){
     let edge = []
     edge.push(river['source']);
@@ -37,6 +40,13 @@ Operation.prototype.getMoveData = function(response){
   let punter = response['claim']['punter'];
   let s = response['claim']['source'];
   let t = response['claim']['target'];
+  console.log(s,t);
+  if(s>t){
+    let tmp = s;
+    s = t;
+    t = tmp;
+  }
+  console.log(s,t);
   return {"claim":{"p":punter,"s":s,"t":t}};
 }
 
@@ -80,7 +90,6 @@ Game.prototype.updateVis = function (data) {
 
 Game.prototype.updateGame = function () {
   let url = 'log/'+String(this.getGameId())+'/'+String(this.getTurn());
-  console.log(url);
   let jsonlog = $('#jsonlog');
   $.ajax({
     type:"GET",
