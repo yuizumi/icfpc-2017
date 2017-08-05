@@ -1,4 +1,4 @@
-var colors = {
+const colors = {
     link: [
         '#cccccc',
         '#3CBAC8',
@@ -7,11 +7,11 @@ var colors = {
     ]
 };
 
-var linksToSelectorId = function (selector, src, dst) {
+const linksToSelectorId = function (selector, src, dst) {
     return selector.replace('#', '') + '-' + src + '-' + dst;
 };
 
-var updateEdge = function (rootSelector, srcId, targetId, user) {
+const updateEdge = function (rootSelector, srcId, targetId, user) {
     _id = linksToSelectorId(rootSelector, srcId, targetId)
     
     d3
@@ -22,12 +22,12 @@ var updateEdge = function (rootSelector, srcId, targetId, user) {
         });
 }
 
-var createGraph = function (rootSelector, data, nodeIndexDic) {
-    var width = 500;
-    var height = 500;
-    var node_radius = 10;
+const createGraph = function (rootSelector, data, nodeIndexDic) {
+    const width = 500;
+    const height = 500;
+    const node_radius = 10;
 
-    var edges = _.map(data.edges, function (edge, i) {
+    const edges = _.map(data.edges, function (edge, i) {
         console.log(edge[0], edge[1]);
         return {
             source: nodeIndexDic[edge[0]],
@@ -38,24 +38,24 @@ var createGraph = function (rootSelector, data, nodeIndexDic) {
         }
     });
 
-    var nodes = _.map(data.nodes, function (node, i) {
+    const nodes = _.map(data.nodes, function (node, i) {
         return {id: node, isLambda: data.lambdas.indexOf(node) > -1}
     });
 
     console.log(JSON.stringify(nodes));
 
-    var force = d3.layout.force()
+    const force = d3.layout.force()
         .nodes(nodes)
         .links(edges)
         .size([width, height])
         .linkDistance(50)
         .charge(-200);
 
-    var svg = d3.select(rootSelector).append("svg")
+    const svg = d3.select(rootSelector).append("svg")
         .attr({width: width, height: height});
 
     //リンク
-    var link = svg.selectAll("line")
+    const link = svg.selectAll("line")
         .data(edges)
         .enter()
         .append("line")
@@ -73,7 +73,7 @@ var createGraph = function (rootSelector, data, nodeIndexDic) {
 
 
     // ノード
-    var node = svg.selectAll("circle")
+    const node = svg.selectAll("circle")
         .data(nodes)
         .enter()
         .append("circle")

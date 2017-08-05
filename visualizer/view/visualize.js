@@ -1,4 +1,4 @@
-var Visualizer = function (rootSelector) {
+const Visualizer = function (rootSelector) {
     /*
      描画するrootのセレクタを指定してnewで呼び出してください
      */
@@ -29,7 +29,7 @@ var Visualizer = function (rootSelector) {
          */
         
         this.NodeIndexDic = {};
-        for (var i = 0; i < data.nodes.length; i++) {
+        for (let i = 0; i < data.nodes.length; i++) {
             this.NodeIndexDic[data.nodes[i]] = i;
         }
         
@@ -57,8 +57,8 @@ var Visualizer = function (rootSelector) {
 };
 
 // テスト
-var VisualizeTest = function () {
-    var vis = new Visualizer('#main-visualize-cell');
+const VisualizeTest = function () {
+    let vis = new Visualizer('#main-visualize-cell');
 
     vis.createMap({
         nodes: [0, 1, 2, 5],
