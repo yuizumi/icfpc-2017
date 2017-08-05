@@ -3,14 +3,63 @@
 <head>
   <meta charset="UTF-8">
   <title>icfpc2017</title>
+  <link rel="stylesheet"
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"></link>
+  <style type="text/css">
+    body {
+      padding-top: 70px;
+    }
+  </style>
 </head>
 <body>
 
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <div class="navbar-brand">ICFPC 2017 Visualizer Site</div>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-3">
+      <legend>Operation</legend>
+      <input type="number" placeholder="gamenumber" id="gamenumber"></input>
+      <div class="btn-group-vertical">
+        <button class="btn btn-primary" id="play">Play</button>
+        <button class="btn btn-success" id="next">Next Turn</button>
+        <button class="btn btn-info" id="autoplay">Auto Play</button>
+        <button class="btn btn-danger" id="stopplay">Stop</button>
+      </div>
+    </div>
+    <div class="col-md-9">
+      <legend>JSON Data</legend>
+      <textarea id="jsonlog" readonly="readonly" cols="100" rows="8"></textarea>
+    </div>
+    <div>
+      <div class="row">
+        <div class="col-md-12">
+          <legend>Visualizer</legend>
+          <div id="main-visualize-cell"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 
-<script type="text/javascript" src=“lib/jquery-3.2.1.min.js"></script>
-<script type="text/javascript" src=“lib/d3.min.js"></script>
-<script type="text/javascript" src=“lib/underscore-min.js"></script>
+<script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script
+    src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script src="view/graph.js"></script>
+<script src="view/visualize.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>
