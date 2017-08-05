@@ -1,6 +1,8 @@
 import numpy as np
-from scipy.sparse import csgraph
+import sys
 from punter_client import PunterClient
+from process_punter_client import ProcessPunterClient
+from scipy.sparse import csgraph
 
 class PunterState:
     def __init__(self, client):
@@ -15,15 +17,13 @@ def emulate(punter_clients, map_dict):
     punters = []
 
     # setup
-    punter_id = 0
     for client in punter_clients:
         punter = PunterState(client)
         punters.append(punter)
         # handshake
         hand_req = punter.client.start_handshake()
         punter.name = hand_req['me']
-        punter.id = punter_id
-        punter_id += 1
+        punter.id = len(punters)
         punter.last_move = {'pass': {'punter': punter.id}}
         punter.client.end_handshake({'you': punter.name})
         # setup
@@ -62,7 +62,7 @@ def emulate(punter_clients, map_dict):
                 move = {'pass': {'punter': punter.id}}
         else:
             move = {'pass': {'punter': punter.id}}
-        del move['state']
+        if 'state' in move: del move['state']
         print(move)
         punter.moves.append(move)
         all_moves.append(move)
@@ -111,12 +111,13 @@ def emulate(punter_clients, map_dict):
     print(map_dict)
     print(scores)
 
-# python3 -m emulate map.json "./ai1" "./ai2"
-emulate([PunterClient(), PunterClient()], {
-    'sites': [{'id': 1}, {'id': 2}, {'id': 3}, {'id': 4}],
-    'rivers': [
-        {'source': 1, 'target': 2},
-        {'source': 2, 'target': 3},
-        {'source': 3, 'target': 4},
-        {'source': 1, 'target': 4}],
-    'mines': [1, 3]})
+# TODO: use argparse
+emulate(
+    [ProcessPunterClient(sys.argv[1]), PunterClient()],
+    {'sites': [{'id': 1}, {'id': 2}, {'id': 3}, {'id': 4}],
+     'rivers': [
+         {'source': 1, 'target': 2},
+         {'source': 2, 'target': 3},
+         {'source': 3, 'target': 4},
+         {'source': 1, 'target': 4}],
+     'mines': [1, 3]})
