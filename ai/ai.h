@@ -1,12 +1,18 @@
-// TODO(yuizumi): もうちょっとよく考える
-// NOTE(yuizumi): いろいろ変わる可能性あり
+// -*- C++ -*-
+
 #ifndef AI_H_
 #define AI_H_
+
+// NOTE(yuizumi): まだいろいろ変わる可能性あり
 
 #include <string>
 #include <vector>
 
-using SiteId = int;  // いらないかも
+#include "../thirdparty/json.hpp"
+
+using Json = nlohmann::json;
+
+using SiteId = int;
 struct River { SiteId source, target; };  // 向きは関係ない
 
 class Map {
@@ -21,24 +27,24 @@ private:
     std::vector<SiteId> mines_;
 };
 
-enum class MoveType { kClaim, kPass };
-
 struct Move {
-    MoveType type;  // kClaim in most cases
-    int source;
-    int target;
+    enum class Action { kPass, kClaim };
+    Action action;
+    River river;
 };
 
 class AI {
 public:
-    virtual std::string name() const = 0;
+    // ターンが来るごとに呼び出される
+    virtual void Init(int punter, int num_punters, const Map& map) = 0;
 
-    virtual void Setup(int punter, int num_punters, const Map& map) = 0;
-    // moves[i] == {"punter": i} が指した最後に指した手
-    virtual Move Play(const std::vector<Move>& moves) = 0;
-    // moves[i] == {"punter": i} が指した最後に指した手
-    // scores[i] == {"punter": i} が指した最後に指した手
-    virtual void Stop(const std::vector<Move>& moves, std::vector<int> scores) = 0;
+    virtual void LoadState(Json&& json) = 0;
+    virtual Json SaveState() = 0;
+
+    virtual void Setup() = 0;
+
+    // moves[i] == {"punter": i} の直前のターンにおける手
+    virtual Move Gameplay(const std::vector<Move>& moves) = 0;
 };
 
 #endif  // AI_H_
