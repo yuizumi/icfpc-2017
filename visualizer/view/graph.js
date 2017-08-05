@@ -28,7 +28,6 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
     const node_radius = 10;
 
     const edges = _.map(data.edges, function (edge, i) {
-        console.log(edge[0], edge[1]);
         return {
             source: nodeIndexDic[edge[0]],
             target: nodeIndexDic[edge[1]],
@@ -41,8 +40,7 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
     const nodes = _.map(data.nodes, function (node, i) {
         return {id: node, isLambda: data.lambdas.indexOf(node) > -1}
     });
-
-    console.log(JSON.stringify(nodes));
+    
 
     const force = d3.layout.force()
         .nodes(nodes)

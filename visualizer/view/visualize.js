@@ -7,7 +7,6 @@ const Visualizer = function (rootSelector) {
         this.RootSelector = rootSelector;
         this.MapData = {};
         this.NodeIndexDic = {};
-        console.log('selector', rootSelector);
     };
 
     this.setMapData = function (mapData) {
@@ -27,28 +26,25 @@ const Visualizer = function (rootSelector) {
          lambdas: [1 ...]
          }
          */
-        
+
         this.NodeIndexDic = {};
         for (let i = 0; i < data.nodes.length; i++) {
             this.NodeIndexDic[data.nodes[i]] = i;
         }
-        
+
         this.setMapData(data);
         createGraph(
-            this.RootSelector, 
+            this.RootSelector,
             this.getMapData(),
             this.NodeIndexDic
         );
-        // Test();
-        return 0;
     };
 
 
     // エッジの更新
     this.update = function (src_node_id, dst_node_id, user_id) {
-        console.log(src_node_id + '->' + dst_node_id + ': ' + user_id);
+        console.log('user' + user_id + ' claimed ' + src_node_id + '->' + dst_node_id);
         updateEdge(this.RootSelector, src_node_id, dst_node_id, user_id);
-        return 0;
     };
 
 
