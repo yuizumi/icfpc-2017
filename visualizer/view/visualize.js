@@ -1,8 +1,17 @@
-var Visualizer = {
-    visualize: function(root, data) {
-        // root: root jquery object ここの要素以下に追加します
-        // data: 取り決めしたデータの形でもらいます
-        return 0;
-    }
+// 1. vis = new Visulize();
+// 2. vis.createMap('#main-visualize-cell', data)
+// 3. visualze.update(src_idx, dst_idx)
+
+// data = {};
+// data.nodes = [node_id, ...]
+// data.edge = [[src, dst], ...]
+
+var Visualizer = {};
+
+Visualizer.createMap = function (root_selector, data) {
+    return 0;
 };
 
+Visualizer.update = function (src_node_idx, dst_node_idx) {
+    return 0;
+};
