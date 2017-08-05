@@ -74,7 +74,7 @@ Game.prototype.updateVis = function (data) {
     this._vis.createMap(data['map']);
   }else if('claim' in data){
     let tmp = data['claim'];
-    this._vis.update(tmp['p'],tmp['s'],tmp['t']);
+    this._vis.update(tmp['s'],tmp['t'],tmp['p']);
   }
 };
 
