@@ -1,77 +1,116 @@
-function update_map(vcell,response){
-  if('map' in response){
-    console.log('map');
-    let nodes = [];
-    let edges = [];
-    let lambdas = [];
-    response['map']['sites'].forEach(function(node){
-      nodes.push(node['id']);
-    });
-    response['map']['rivers'].forEach(function(river){
-      let edge = []
-      edge.push(river['source']);
-      edge.push(river['target']);
-      edges.push(edge);
-    });
-    response['map']['mines'].forEach(function(mine){
-      lambdas.push(mine)
-    });
-    //console.log(nodes);
-    //console.log(edges);
-    //console.log(lambdas);
-    data = {"nodes":nodes,"edges":edges,"lambdas":lambdas};
-    Visualizer.createMap(vcell,data)
+var Operation = function(){
+  this.returnData = function(response){
+    if('map' in response){
+      return this.getmapData(response);
+    }else if('claim' in response){
+      return this.getMoveData(response);
+    }else if('pass' in response){
+      return this.getPassData(response);
+    }else if('stop' in response){
+      return this.getScoreData(response);
+    }
   }
-  if('claim' in response){
-    let punter = response['claim']['punter'];
-    let s = response['claim']['source'];
-    let t = response['claim']['target'];
-    Visualizer.update(s,t);
-    //console.log('claim')
-  }
-  if('pass' in response){
-    console.log('pass');
-  }
-  if('stop' in response){
-    //console.log('stop');
-    response['stop']['scores'].forEach(function(score){
-      console.log(score);
-    });
-  }
-  return "end"
 }
 
-function updateGame(vcell,gameState){
-  console.log(gameState);
-  let url = 'log/'+String(gameState.gamenumber)+'/'+String(gameState.turn);
-  //let vcell = $('#main-visualize-cell');
-  let jsonlog = $('#jsonlog')
+Operation.prototype.getmapData = function (response) {
+  console.log('map');
+  let nodes = [];
+  let edges = [];
+  let lambdas = [];
+  response['map']['sites'].forEach(function(node){
+    nodes.push(node['id']);
+  });
+  response['map']['rivers'].forEach(function(river){
+    let edge = []
+    edge.push(river['source']);
+    edge.push(river['target']);
+    edges.push(edge);
+  });
+  response['map']['mines'].forEach(function(mine){
+    lambdas.push(mine)
+  });
+  data = {"nodes":nodes,"edges":edges,"lambdas":lambdas};
+  return {"map":data};
+};
+
+Operation.prototype.getMoveData = function(response){
+  let punter = response['claim']['punter'];
+  let s = response['claim']['source'];
+  let t = response['claim']['target'];
+  return {"claim":{"p":punter,"s":s,"t":t}};
+}
+
+Operation.prototype.getPassData = function(response){
+  return {"pass":"pass"};
+}
+
+Operation.prototype.getScoreData = function(response){
+  let scores = []
+  response['stop']['scores'].forEach(function(score){
+    scores.push(score);
+  });
+  return {"scores":scores};
+}
+
+var Game = function(gameId,selector){
+  this._gameId = gameId;
+  this._turn = 0;
+  this._vis = new Visualizer(selector);
+
+  this.getGameId = function(){
+    return this._gameId;
+  }
+  this.getTurn = function(){
+    return this._turn;
+  }
+  this.updateTurn = function(){
+    this._turn++;
+    return this._turn;
+  }
+}
+
+Game.prototype.updateVis = function (data) {
+  if('map' in data){
+    this._vis.createMap(data['map']);
+  }else if('claim' in data){
+    let tmp = data['claim'];
+    this._vis.update(tmp['p'],tmp['s'],tmp['t']);
+  }
+};
+
+Game.prototype.updateGame = function () {
+  let url = 'log/'+String(this.getGameId())+'/'+String(this.getTurn());
+  console.log(url);
+  let jsonlog = $('#jsonlog');
   $.ajax({
     type:"GET",
     dataType:"json",
-    url:url
+    url:url,
+    this:this
     }
-  ).done(function(response,status,jqXHR){
+  ).done((function(d) {return function(response,status,jqXHR){
     let data = {};
-    jsonlog.val(jqXHR['responseText'])
-    data = update_map(vcell,response)
-    gameState.turn++;
-  }).fail(function(response,status,error){
-    jsonlog.val(error)
+    let ope = new Operation();
+    jsonlog.val(jqXHR['responseText']);
+    data = ope.returnData(response);
+    d.updateTurn();
+    d.updateVis(data);
+  };})(this)).fail(function(response,status,error){
+    jsonlog.val(error);
     alert("The game is over!! or some error has occur.")
   });
-}
+};
 
-var game = {}
-var timer = {}
+var game = {};
+var timer = {};
 
 $('#play').on('click',function(){
-  game = {gamenumber:Number($('#gamenumber').val()),turn:0}
-  updateGame('#main-visualize-cell',game);
+  game = new Game(Number($('#gamenumber').val()),"#main-visualize-cell");
+  game.updateGame();
 });
 
 $('#next').on('click',function(){
-  updateGame('#main-visualize-cell',game);
+  game.updateGame();
 });
 
 $('#autoplay').on('click',function(){
