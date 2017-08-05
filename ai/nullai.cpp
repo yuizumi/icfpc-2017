@@ -1,4 +1,7 @@
-#include "nullai.h"
+#include "../core/ai.h"
+#include "../core/driver.h"
+
+using namespace std;
 
 constexpr auto kPass = Move::Action::kPass;
 
@@ -13,4 +16,8 @@ class NullAI : public AI {
     Move Gameplay(const std::vector<Move>& moves) override { return {kPass, {}}; }
 };
 
-std::unique_ptr<AI> CreateNullAI() { return std::make_unique<NullAI>(); }
+int main() {
+    NullAI ai;
+    Run(&ai);
+    return 0;
+}

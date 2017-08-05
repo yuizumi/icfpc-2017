@@ -8,18 +8,19 @@
 #include <string>
 #include <vector>
 
-#include "../thirdparty/json.hpp"
+#include "json.h"
 
-using Json = nlohmann::json;
-
-using SiteId = int;
+using SiteId = int;  // int64_t?
 struct River { SiteId source, target; };  // 向きは関係ない
 
 class Map {
 public:
     const std::vector<SiteId>& sites() const { return sites_; }   // aka. nodes
+    std::vector<SiteId>& sites() { return sites_; }
     const std::vector<River>& rivers() const { return rivers_; }  // aka. edges
+    std::vector<River>& rivers() { return rivers_; }
     const std::vector<SiteId>& mines() const { return mines_; }
+    std::vector<SiteId>& mines() { return mines_; }
 
 private:
     std::vector<SiteId> sites_;
@@ -35,6 +36,8 @@ struct Move {
 
 class AI {
 public:
+    virtual std::string name() const { return typeid(*this).name(); }
+
     // ターンが来るごとに呼び出される
     virtual void Init(int punter, int num_punters, const Map& map) = 0;
 
