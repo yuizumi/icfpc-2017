@@ -1,29 +1,34 @@
 #include "driver.h"
 
-#include <cassert>
-#include <iostream>
+#include <assert.h>
+#include <unistd.h>
 #include <string>
 
 #include "json.h"
 
-using namespace std;
-
 namespace {
 
 Json Read() {
-    int length;
-    char colon;
-    cin >> length >> colon;
-    assert(iss && colon == ':');
-    std::unique_ptr<char[]> body(new char[length + 1]);
-    cin.read(body, length);
+    int len = 0;
+    while (true) {
+        char buf[1];
+        while (read(0, buf, 1) <= 0) ;
+        char ch = buf[0];
+        if (ch == ':') break;
+        assert(ch >= '0' && ch <= '9');
+        len = len * 10 + (ch - '0');
+    }
+    std::unique_ptr<char[]> body(new char[len + 1]);
+    read(0, body.get(), len);
+    body[len] = '\0';
     return Json::parse(body.get());
 }
 
 void Write(const Json& json) {
-    const string json_str = json.dump();
-    cout << json_str.length() << ":" << json_str;
-    cout.flush();
+    const std::string body = json.dump();
+    const std::string head = std::to_string(body.length()) + ":";
+    write(1, head.c_str(), head.length());
+    write(1, body.c_str(), body.length());
 }
 
 Map ParseMap(const Json& json) {
@@ -89,10 +94,10 @@ void DoGameplay(AI* ai, Json&& json) {
 }  // namespace
 
 void Run(AI* ai) {
-    const string name = ai->name();
+    const std::string name = ai->name();
     Write({{"me", name}});
-    Json hello = Read();
-    assert(hello["you"] == name);
+    Json handshake = Read();
+    assert(handshake["you"] == name);
 
     Json json = Read();
 
