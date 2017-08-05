@@ -19,13 +19,13 @@ Json Read() {
     char colon;
     string body;
     iss >> length >> colon >> body;
-    assert(iss && colon == ':' && body.length() == length);
+    assert(iss && colon == ':');
     return Json::parse(body);
 }
 
 void Write(const Json& json) {
     const string json_str = json.dump();
-    cout << json_str.length() << ":" << json_str;
+    cout << (json_str.length() + 1) << ":" << json_str << endl;
     cout.flush();
 }
 
@@ -69,7 +69,7 @@ void DoSetup(AI* ai, Json&& json) {
 
 void DoGameplay(AI* ai, Json&& json) {
     Json state = json["state"];
-    const int id = json["punter"];
+    const int id = state["punter"];
     ai->Init(id, state["punters"], ParseMap(state["map"]));
     ai->LoadState(std::move(state["custom"]));
     Move next_move = ai->Gameplay(ParseMove(json["move"]));
@@ -93,7 +93,7 @@ void DoGameplay(AI* ai, Json&& json) {
 
 void Run(AI* ai) {
     const string name = ai->name();
-    Write({"me", name});
+    Write({{"me", name}});
     Json hello = Read();
     assert(hello["you"] == name);
 
