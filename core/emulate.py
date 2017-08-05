@@ -67,6 +67,7 @@ def emulate(punters, map_dict):
         punter.name = hand_req['me']
         punter.id = punter_id
         punter_id += 1
+        # TODO: pdfのAliceの例に従うとこうなる？
         punter.last_move = {'pass': {'punter': punter.id}}
         punter.end_handshake({'you': punter.name})
         # setup
@@ -86,6 +87,7 @@ def emulate(punters, map_dict):
         assert hand_req['me'] == punter.name
         punter.end_handshake({'you': punter.name})
         move = punter.move({
+            # TODO: pdf見る限り全プレーヤーの直前のみの履歴っぽい？
             'move': {'moves': [p.last_move for p in punters]},
             'state': punter.state})
         # save state
