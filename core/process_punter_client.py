@@ -27,7 +27,6 @@ class ProcessPunterClient(PunterClient):
         self.writer.write(':')
         self.writer.write(data)
         self.writer.flush()
-        print(str(len(data)) + ':' + data)
 
     def start_handshake(self):
         if self.process is not None:
