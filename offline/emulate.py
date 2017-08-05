@@ -122,6 +122,7 @@ def emulate(punter_clients, map_dict, logger):
     # log
     logger.info('map_result', map_dict)
     logger.info('scores', scores)
+    logger.info('moves_summary', all_moves)
 
 class Logger:
     def __init__(self, dir):
