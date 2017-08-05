@@ -8,8 +8,10 @@ $ make
 
 # execute
 
-Please install [lambduct](https://github.com/icfpcontest2017/lambda-duct) before.
+Please install [lamduct](https://github.com/icfpcontest2017/lambda-duct) before.
 
 ```
-$ lambduct ./some_ai --log-level 3 --game-port 9XXX
+$ lamduct ./some_ai --log-level 3 --game-port 9XXX
 ```
+
+You can get port numbers from http://punter.inf.ed.ac.uk/status.html.
