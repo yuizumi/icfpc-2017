@@ -11,21 +11,18 @@ using namespace std;
 namespace {
 
 Json Read() {
-    string message;
-    getline(cin, message);  // TODO(yuizumi): これは微妙かも。
-
-    istringstream iss(message);
     int length;
     char colon;
-    string body;
-    iss >> length >> colon >> body;
+    cin >> length >> colon;
     assert(iss && colon == ':');
-    return Json::parse(body);
+    std::unique_ptr<char[]> body(new char[length + 1]);
+    cin.read(body, length);
+    return Json::parse(body.get());
 }
 
 void Write(const Json& json) {
     const string json_str = json.dump();
-    cout << (json_str.length() + 1) << ":" << json_str << endl;
+    cout << json_str.length() << ":" << json_str;
     cout.flush();
 }
 
