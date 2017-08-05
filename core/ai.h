@@ -39,7 +39,7 @@ public:
     virtual std::string name() const { return typeid(*this).name(); }
 
     // ターンが来るごとに呼び出される
-    // map の指すオブジェクトはこのインスタンスが生存するかぎり存在が保証される
+    // map の指すオブジェクトは Run() の実行中は存在が保証される
     virtual void Init(int punter, int num_punters, const Map* map) = 0;
 
     virtual void LoadState(Json&& json) = 0;
