@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import sys
 from punter_client import PunterClient
@@ -112,13 +113,10 @@ def emulate(punter_clients, map_dict):
     print(map_dict)
     print(scores)
 
-# TODO: use argparse
-emulate(
-    [ProcessPunterClient(sys.argv[1]), PunterClient()],
-    {'sites': [{'id': 1}, {'id': 2}, {'id': 3}, {'id': 4}],
-     'rivers': [
-         {'source': 1, 'target': 2},
-         {'source': 2, 'target': 3},
-         {'source': 3, 'target': 4},
-         {'source': 1, 'target': 4}],
-     'mines': [1, 3]})
+if __name__ == '__main__':
+    with open(sys.argv[1]) as maps_json:
+        map_dict = json.load(maps_json)
+    clients = []
+    for command in sys.argv[2:]:
+        clients.append(ProcessPunterClient(command))
+    emulate(clients, map_dict)
