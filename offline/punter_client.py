@@ -1,6 +1,6 @@
 class PunterClient:
     def start_handshake(self):
-        return {'me': 'suzukazeaoba'}
+        return {'me': 'PunterClient.py'}
 
     def end_handshake(self, input_dict):
         return
