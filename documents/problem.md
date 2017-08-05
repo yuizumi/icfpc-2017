@@ -56,7 +56,7 @@ JSON形式. Online modeとOffline modeが存在する
 
 * Online mode
 
-プレイヤー同士はICP/IPで通信する
+プレイヤー同士はTCP/IPで通信する
 
 * Offline mode
 
