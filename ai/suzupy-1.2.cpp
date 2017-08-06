@@ -66,6 +66,7 @@ class Suzupy : public AI {
             punter_reachables.insert(punter_reachables_json.begin(), punter_reachables_json.end());
             reachables_.push_back(punter_reachables);
         }
+        dists_ = json["dists"].get<vector<vector<int>>>();
     }
 
     Json SaveState() override {
@@ -88,7 +89,8 @@ class Suzupy : public AI {
         return {
             {"punterTrees", json_punterTrees},
             {"rivers", json_rivers},
-            {"reachables", json_reachables}
+            {"reachables", json_reachables},
+            {"dists", dists_}
         };
     }
 
