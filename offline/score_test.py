@@ -32,11 +32,11 @@ for line in sys.stdin:
 
 score.move(last_claim)
 
-result = []
+result_list = []
 for answer in answers:
     punter = answer['punter']
     calced = score.calc(punter)
-    result.append({'punter': punter, 'score': calced})
+    result_list.append(calced)
     print('calced:', calced, 'answer:', answer['score'])
 
-assert result is answer
+assert result_list == [answer['score'] for answer in answers]

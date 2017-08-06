@@ -17,7 +17,6 @@ for line in sys.stdin:
     if start < 0: continue
     json_str = line[start: line.rfind('}') + 1]
     json_dict = json.loads(json_str)
-        continue
     if map_dict is None and 'map' in json_dict:
         map_dict = json_dict['map']
         logger.info('map', map_dict)
@@ -25,11 +24,13 @@ for line in sys.stdin:
         assert map_dict is not None
         for move in json_dict['move']['moves']:
             logger.turn(len(moves), move)
+            logger.show(len(moves), move)
             moves.append(move)
     if 'stop' in json_dict:
         assert map_dict is not None
         for move in json_dict['stop']['moves']:
             logger.turn(len(moves), move)
+            logger.show(len(moves), move)
             moves.append(move)
         logger.info('scores', json_dict['stop']['scores'])
 
