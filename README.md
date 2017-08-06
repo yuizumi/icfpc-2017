@@ -19,6 +19,9 @@ You can get port numbers from http://punter.inf.ed.ac.uk/status.html.
 # offline
 
 ```
-$ wget http://punter.inf.ed.ac.uk/maps/lambda.json
-$ python3 offline/emulate.py lambda.json ai/greedy ai/forest
+$ tools/wget_maps.sh
+$ # Emulate with logging into visualizer/log.
+$ python3 offline/emulate.py maps/lambda.json ai/greedy ai/forest
+$ # Emulate only using only stderr (debug info) and stdout (scores).
+$ python3 offline/emulate_no_write.py maps/lambda.json ai/greedy ai/forest
 ```

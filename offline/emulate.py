@@ -1,9 +1,4 @@
-import json
 import numpy as np
-import os
-import sys
-from punter_client import PunterClient
-from process_punter_client import ProcessPunterClient
 from scipy.sparse import csgraph
 
 class PunterState:
@@ -20,6 +15,7 @@ def edges_equal(a, b):
         or (a['source'] == b['target'] and a['target'] == b['source']))
 
 def emulate(punter_clients, map_dict, logger):
+    logger.start()
     logger.info('map', map_dict)
     punters = []
 
@@ -40,8 +36,8 @@ def emulate(punter_clients, map_dict, logger):
             'map': map_dict })
         if 'state' in ready:
             punter.state = ready['state']
-    logger.info('punters', [
-        {'punter': p.id, 'name': p.name} for p in punters])
+        logger.show('punter '+ str(punter.id), punter.name)
+    logger.info('punters', [{'punter': p.id, 'name': p.name} for p in punters])
 
     # game
     punter_index = 0
@@ -72,9 +68,11 @@ def emulate(punter_clients, map_dict, logger):
             move = None
         # error json is regarded as pass
         if move is None:
+            logger.show('suspicious move', {'turn': turn, 'name': punter.name})
             move = {'pass': {'punter': punter.id}, 'state': punter.state}
         logger.turn(turn, move)
         if 'state' in move: del move['state']
+        logger.show(turn, move)
         punter.moves.append(move)
         all_moves.append(move)
         punter.last_move = move
@@ -120,48 +118,29 @@ def emulate(punter_clients, map_dict, logger):
             'state': punter.state})
 
     # log
+    logger.info('moves_summary', all_moves)
     logger.info('map_result', map_dict)
     logger.info('scores', scores)
-    logger.info('moves_summary', all_moves)
+    logger.show('scores', scores)
+    logger.end()
 
-class Logger:
-    def __init__(self, dir):
-        self.dir = dir
+def parse_map_arg(at):
+    import json
+    import sys
+    with open(sys.argv[at]) as maps_json:
+        return json.load(maps_json)
 
-    def info(self, name, data):
-        file_path = os.path.join(self.dir, name + '.json')
-        with open(file_path, 'w') as file:
-            json.dump(data, file)
-
-    def turn(self, turn, data):
-        self.info(str(turn), data)
-
-    def warn(self, turn_or_name, data):
-        self.info('warn-' + str(turn_or_name), data)
-
-def next_log_dir(root_dir):
-    try:
-        os.mkdir(root_dir)
-    except FileExistsError:
-        pass
-    index = 0
-    for name in os.listdir(root_dir):
-        try:
-            index = max(index, int(name))
-        except ValueError:
-            pass
-    log_dir = os.path.join(root_dir, str(index + 1))
-    try:
-        os.mkdir(log_dir)
-    except FileExistsError:
-        pass
-    return log_dir
-
-if __name__ == '__main__':
-    with open(sys.argv[1]) as maps_json:
-        map_dict = json.load(maps_json)
+def parse_punter_args(at):
+    import sys
+    from process_punter_client import ProcessPunterClient
     clients = []
     for command in sys.argv[2:]:
         clients.append(ProcessPunterClient(command))
-    logger = Logger(next_log_dir('logs'))
-    emulate(clients, map_dict, logger)
+    return clients
+
+if __name__ == '__main__':
+    import log_to_dir
+    emulate(
+        parse_punter_args(at=2),
+        parse_map_arg(at=1),
+        log_to_dir.default_logger())

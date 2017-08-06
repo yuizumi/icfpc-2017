@@ -1,9 +1,8 @@
 import io
 import json
 import subprocess
-from punter_client import PunterClient
 
-class ProcessPunterClient(PunterClient):
+class ProcessPunterClient:
     def __init__(self, command):
         self.command = command
         self.reader = None

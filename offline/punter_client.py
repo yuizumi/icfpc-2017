@@ -1,3 +1,5 @@
+import random
+
 class PunterClient:
     def start_handshake(self):
         return {'me': 'PunterClient.py'}
@@ -29,7 +31,6 @@ class PunterClient:
         if len(choices) == 0:
             return {'pass': {'punter': punter.id}}
         else:
-            import random
             r = random.choice(choices)
             return {
                 'claim': {
