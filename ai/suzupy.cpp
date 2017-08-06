@@ -1,6 +1,5 @@
 #include <vector>
 #include <set>
-#include <map>
 
 #include "../core/ai.h"
 #include "../core/driver.h"
@@ -23,10 +22,10 @@ public:
 
 class UnionFind {
 public:
-    map<int, int> data;
-    UnionFind(): data() { }
-    UnionFind(map<int, int> v) { data = v; }
-    bool UnionSet(int x, int y) {
+    vector<int> data;
+    UnionFind(int size): data(size, -1) { }
+    UnionFind(vector<int> v) { data = v; }
+    bool UnionSet(int x, int y){
         x = root(x);
         y = root(y);
         if(x != y) {
@@ -61,7 +60,7 @@ class Suzupy : public AI {
             rivers_.insert({source, target});
         }
         for (const Json& trees: json["punterTrees"]) {
-            UnionFind uf_trees(trees.get<map<int, int>>());
+            UnionFind uf_trees(trees.get<vector<int>>());
             punterTrees_.push_back(uf_trees);
         }
     }
@@ -82,7 +81,7 @@ class Suzupy : public AI {
     void Setup() override {
         rivers_.insert(map_->rivers().begin(), map_->rivers().end());
         for (int i = 0; i < num_punters_; i++) {
-            UnionFind uf_trees;
+            UnionFind uf_trees(map_->mines().size());
             // for (const SiteId mine : map_.mines())
             //     uf_trees;
             punterTrees_.push_back(uf_trees);
