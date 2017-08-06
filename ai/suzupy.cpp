@@ -43,7 +43,7 @@ class Suzupy : public AI {
     }
 
     void LoadState(Json&& json) override {
-        rivers_ = Deserialize(json["rivers"]);
+        rivers_ = DeserializeRiverSet(json["rivers"]);
         for (const Json& trees: json["punterTrees"]) {
             UnionFind uf_trees(trees.get<vector<int>>());
             punterTrees_.push_back(uf_trees);
@@ -61,7 +61,7 @@ class Suzupy : public AI {
             Json json_trees = trees.data;
             json_punterTrees.push_back(json_trees);
         }
-        const Json json_rivers = Serialize(rivers_);
+        const Json json_rivers = SerializeRiverSet(rivers_);
         auto json_reachables = Json::array();
         for (set<SiteId> punter_reachables : reachables_) {
             auto punter_reachables_json = Json::array();
