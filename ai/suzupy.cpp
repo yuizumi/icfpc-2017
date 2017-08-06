@@ -106,7 +106,6 @@ class Suzupy : public AI {
         }
     }
 
-    // forest相当
     Move Gameplay(const std::vector<Move>& moves) override {
         // timeoutなどで嘘になるけどpunterIdを知る方法がこれ以外にないので暫定対応
         for(int i = 0; i < moves.size(); i++) {
@@ -119,10 +118,35 @@ class Suzupy : public AI {
                 reachables_[i].insert(m.river.target);
             }
         }
+        // cycleを避けつつ他のmineと接続できるなら先につなぐ
         for (const River& river : rivers_) {
-            if (reachables_[id_].count(river.source) || reachables_[id_].count(river.target)) {
-                return {kClaim, river};
+            SiteId old_, new_;
+            if (reachables_[id_].count(river.source)) {
+                old_ = river.source;
+                new_ = river.target;
+            } else if (reachables_[id_].count(river.target)) {
+                old_ = river.target;
+                new_ = river.source;
+            } else {
+                continue;
             }
+            if (reachables_[id_].count(new_) && !punterTrees_[id_].findSet(old_, new_))
+                return {kClaim, river};
+        }
+        // 既にmineにつながっているところに隣接したriverでまだmineにつながっていないsiteを優先して取る
+        for (const River& river : rivers_) {
+            SiteId old_, new_;
+            if (reachables_[id_].count(river.source)) {
+                old_ = river.source;
+                new_ = river.target;
+            } else if (reachables_[id_].count(river.target)) {
+                old_ = river.target;
+                new_ = river.source;
+            } else {
+                continue;
+            }
+            if (!reachables_[id_].count(new_))
+                return {kClaim, river};
         }
         if (rivers_.empty()) {
             return {kPass, {}};
