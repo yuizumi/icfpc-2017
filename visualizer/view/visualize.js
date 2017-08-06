@@ -59,7 +59,7 @@ const Visualizer = function (rootSelector) {
     };
     
     this.updateScore = function (scores) {
-        return; 
+        drawScore(scores);
     };
 
 

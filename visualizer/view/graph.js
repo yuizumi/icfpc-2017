@@ -28,6 +28,50 @@ const colors = {
     ],
 };
 
+const svgWidth = 800;
+
+const drawScore = function (scores) {
+    const height = 50;
+    const scoreSelector = '#score-cell';
+    const svg = d3.select(scoreSelector)
+        .append("svg")
+        .attr({width: svgWidth, height: height})
+    const rect = svg.selectAll("rect")
+        .data(colors.link)
+        .enter()
+        .append("rect")
+        .attr("width", 80)
+        .attr("height", 40)
+        .attr("x", function (d) {
+            return 100 * (d.id + 1)
+        })
+        .attr("fill", function (d) {
+            return d.color;
+        });
+    
+    const label = svg.selectAll('text')
+        .data(colors.link)
+        .enter()
+        .append('text')
+        .attr({
+            "text-anchor": "middle",
+            "fill": "white"
+        })
+        .style({"font-size": 24})
+        .text(function (d) {
+            if (d.id < 0) {
+                return "empty"
+            }
+            return "user" + d.id
+        })
+        .attr("x", function (d) {
+            return (100 * (d.id + 1)) + 40 
+        })
+        .attr("y", function (d) {
+            return 24;
+        })
+    
+};
 
 const linksToSelectorId = function (selector, src, dst) {
     return selector.replace('#', '') + '-' + src + '-' + dst;
@@ -35,8 +79,8 @@ const linksToSelectorId = function (selector, src, dst) {
 
 const updateEdge = function (rootSelector, srcId, targetId, user) {
     const _id = linksToSelectorId(rootSelector, srcId, targetId)
-    
-    const strokeWidth = user < 0 ? 2 : 4;  
+
+    const strokeWidth = user < 0 ? 2 : 4;
     d3
         .selectAll('#' + _id)
         .style({
@@ -96,7 +140,6 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
         .attr({width: width, height: height});
 
     //リンク
-    console.log(JSON.stringify(edges));
     const link = svg.selectAll("line")
         .data(edges)
         .enter()
@@ -157,7 +200,7 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
             "text-anchor": "middle",
             "fill": "white"
         })
-        .style({"font-size": 15, "font-weight": "bold"})
+        .style({"font-size": 18, "font-weight": "bold"})
         .text(function (d) {
             return d.id;
         })
@@ -168,7 +211,7 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
             y: function (d) {
                 return d.y + 5;
             }
-        });    
+        });
     // force.start();
 };
  
