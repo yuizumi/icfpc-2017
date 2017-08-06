@@ -3,7 +3,7 @@ const colors = {
     link: [
         {
             id: -1,
-            color: '#cccccc'
+            color: '#bfbfbf'
         },
         {
             id: 0,
@@ -29,18 +29,18 @@ const colors = {
 };
 
 
-
 const linksToSelectorId = function (selector, src, dst) {
     return selector.replace('#', '') + '-' + src + '-' + dst;
 };
 
 const updateEdge = function (rootSelector, srcId, targetId, user) {
-    _id = linksToSelectorId(rootSelector, srcId, targetId)
-
+    const _id = linksToSelectorId(rootSelector, srcId, targetId)
+    
+    const strokeWidth = user < 0 ? 2 : 4;  
     d3
         .selectAll('#' + _id)
         .style({
-            "stroke-width": 5,
+            "stroke-width": strokeWidth,
             "stroke": colors.link[user + 1].color,
         });
 };
@@ -48,11 +48,9 @@ const updateEdge = function (rootSelector, srcId, targetId, user) {
 const createGraph = function (rootSelector, data, nodeIndexDic) {
     const width = 800;
     const height = 800;
-    const nodeRadius = 10;
-    const svgMargin = 20;
+    const nodeRadius = 12;
+    const svgMargin = 24;
     d3.select(rootSelector).html('');
-
-    console.log(nodeIndexDic);
 
     let xMin = INF;
     let xMax = -INF;
@@ -137,7 +135,7 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
         .append("circle")
         .attr({
             r: nodeRadius,
-            opacity: 0.5
+            opacity: 0.8
         })
         .attr("fill", function (d) {
             return d.isLambda ? "red" : "gray";
@@ -151,25 +149,26 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
             }
         });
 
-    // });
-    // const sample = d3.select(rootSelector).append("svg")
-    //     .attr("class", "sample")
-    //     .attr({width: 100, height: height});
-    //
-    // sample
-    //     .selectAll('circle')
-    //     .data(colors.link)
-    //     .enter()
-    //     .append("circle")
-    //     .attr({
-    //         r: nodeRadius,
-    //         opacity: 0.5
-    //     })
-    //     .attr("fill", function (d) {
-    //         return 'gray';
-    //     })
-    //     .attr('cx', 50)
-    //     .attr('cy', 50)
-
+    const label = svg.selectAll('text')
+        .data(nodes)
+        .enter()
+        .append('text')
+        .attr({
+            "text-anchor": "middle",
+            "fill": "white"
+        })
+        .style({"font-size": 15, "font-weight": "bold"})
+        .text(function (d) {
+            return d.id;
+        })
+        .attr({
+            x: function (d) {
+                return d.x;
+            },
+            y: function (d) {
+                return d.y + 5;
+            }
+        });    
     // force.start();
 };
+ 

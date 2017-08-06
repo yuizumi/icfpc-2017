@@ -52,6 +52,15 @@ const Visualizer = function (rootSelector) {
         console.log('user' + user_id + ' claimed ' + src_node_id + '->' + dst_node_id);
         updateEdge(this.RootSelector, src_node_id, dst_node_id, user_id);
     };
+    
+    this.rollback = function (src_node_id, dst_node_id) {
+        console.log('RollBack ' + src_node_id + '->' + dst_node_id);
+        updateEdge(this.RootSelector, src_node_id, dst_node_id, -1);
+    };
+    
+    this.updateScore = function (scores) {
+        return; 
+    };
 
 
     //オブジェクトのloadを終えたらinitする
@@ -97,6 +106,9 @@ const VisualizeTest = function () {
         {"punter": 0, "score": 27},
         {"punter": 1, "score": 12}];
     vis.update(0, 1, 1);
+    vis.update(0, 2, 2);
+    vis.rollback(0, 1);
+    vis.updateScore(scores);
 
     return vis;
 };
