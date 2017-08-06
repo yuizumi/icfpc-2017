@@ -83,6 +83,7 @@ Game.prototype.updateGame = function () {
     d.updateVis(data);
   };})(this)).fail(function(response,status,error){
     jsonlog.val(error);
+    clearInterval(timer);
     alert("The game is over!! or some error has occur.")
   });
 };
@@ -120,7 +121,7 @@ $('#next').on('click',function(){
 });
 
 $('#autoplay').on('click',function(){
-  timer = setInterval('updateGame("#main-visualize-cell",game);',1000);
+  timer = setInterval('game.updateGame();',1000);
 });
 
 $('#stopplay').on('click',function(){
