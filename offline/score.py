@@ -75,7 +75,7 @@ class Score:
         self.pre_calc()
         subgraph = np.zeros([len(self.map['sites'])] * 2, np.bool)
         for river in self.rivers:
-            if river['punter'] == punter:
+            if river.get('punter') == punter:
                 self.fill_graph_with_river(subgraph, river)
 
         subdist = csgraph.floyd_warshall(subgraph, False, False, True)
