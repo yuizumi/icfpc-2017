@@ -44,6 +44,19 @@ var Game = function(gameId,selector){
   this._gameId = gameId;
   this._turn = 0;
   this._vis = new Visualizer(selector);
+  this._stflag = 0;
+
+  this.startGame = function(){
+    this._stflag = 1;
+  }
+
+  this.endGame = function(){
+    this._stflag = 0;
+  }
+
+  this.isGameStart = function(){
+    return this._stflag;
+  }
 
   this.getGameId = function(){
     return this._gameId;
@@ -139,6 +152,9 @@ Game.prototype.initMap = function (){
 }
 
 Game.prototype.backOneStep = function(){
+  if(game.getTurn() === 0){
+    return "stop";
+  }
   this.roleBackTurn();
   let url = 'log/'+String(this.getGameId())+'/'+String(this.getTurn())+'.json';
   let jsonlog = $('#jsonlog');
@@ -176,6 +192,7 @@ var timer = {};
 
 $('#play').on('click',function(){
   game = new Game(Number($('#gamenumber').val()),"#main-visualize-cell");
+  game.startGame();
   game.initMap();
 });
 
@@ -184,9 +201,7 @@ $('#next').on('click',function(){
 });
 
 $('#back').on('click',function(){
-  if(game.getTurn() >0){
-    game.backOneStep();
-  }
+  game.backOneStep();
 });
 
 $('#autoplay').on('click',function(){
@@ -195,4 +210,13 @@ $('#autoplay').on('click',function(){
 
 $('#stopplay').on('click',function(){
   clearInterval(timer);
+});
+
+$(window).keydown(function(e){
+  if(e.keyCode === 39){
+    game.updateGame();
+  }
+  if(e.keyCode === 37){
+    game.backOneStep();
+  }
 });
