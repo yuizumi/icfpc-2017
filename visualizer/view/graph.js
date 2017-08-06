@@ -1,4 +1,5 @@
 const INF = 10000000.0;
+const scoreSelector = '#score-cell';
 const colors = {
     link: [
         {
@@ -11,11 +12,11 @@ const colors = {
         },
         {
             id: 1,
-            color: '#3CBAC8',
+            color: '#33a3c8',
         },
         {
             id: 2,
-            color: '#68ED63',
+            color: '#0ba72d',
         },
         {
             id: 3,
@@ -23,20 +24,21 @@ const colors = {
         },
         {
             id: 4,
-            color: '#a544ed',
+            color: '#8b2fed',
         },
     ],
 };
 
 const drawLabels = function () {
-    
-    const scoreSelector = '#score-cell';
+    d3.select(scoreSelector).html('');
     const rect = d3.select(scoreSelector)
         .selectAll("div")
         .data(colors.link)
         .enter()
         .append("div")
-        .style("background-color", function(d) {return d.color})
+        .style("background-color", function (d) {
+            return d.color
+        })
         .style(
             {
                 "display": "inline-block",
@@ -46,31 +48,36 @@ const drawLabels = function () {
                 "width": "180px"
             }
         )
-        .html(function(d) {
+        .html(function (d) {
             if (d.id < 0) {
-                return "empty"
+                return "<p style='margin:0'>empty</p><span></span>"
             }
-            return "user" + d.id + ":" 
-                + "<span id=" +　scoreSelectorId(d.id) + ">"
+            return "<p style='margin:0'> user" + d.id + " : </p>"
+                + "<span id=" + scoreSelectorId(d.id) + ">0</span>"
         })
         .selectAll('span')
-        .style("font-weight", "bold")
-        .text("0")
+        .style({
+            "font-weight": "bold",
+            "text-align": "right",
+            "display": "inline-block",
+            "width": "100%",
+        })
+
 };
 
 const drawScore = function (scores) {
-    for (let i = 0; i < scores.length; i ++) {
+    for (let i = 0; i < scores.length; i++) {
         userId = scores[i]["punter"];
         score = scores[i]["score"];
         const _id = scoreSelectorId(userId);
         d3.selectAll('#' + _id)
-            .text(score)
+            .text(score.toLocaleString())
     }
 };
 
-const scoreSelectorId = function(user) {
+const scoreSelectorId = function (user) {
     return "score-" + user;
-}
+};
 
 const linksToSelectorId = function (selector, src, dst) {
     return selector.replace('#', '') + '-' + src + '-' + dst;
@@ -80,19 +87,24 @@ const updateEdge = function (rootSelector, srcId, targetId, user) {
     const _id = linksToSelectorId(rootSelector, srcId, targetId)
 
     const strokeWidth = user < 0 ? 2 : 4;
+    const dash = user < 0 ? "5, 5" : "5, 0";
     d3
         .selectAll('#' + _id)
         .style({
             "stroke-width": strokeWidth,
             "stroke": colors.link[user + 1].color,
-        });
+        })
+        .attr("stroke-dasharray", dash);
+
 };
 
+
 const createGraph = function (rootSelector, data, nodeIndexDic) {
-    const width = 800;
-    const height = 800;
+    const width = 900;
+    const height = 900;
     const nodeRadius = 12;
     const svgMargin = 24;
+
     d3.select(rootSelector).html('');
 
     let xMin = INF;
@@ -168,7 +180,8 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
                 y2: function (d) {
                     return d.target.y;
                 }
-            });
+            })
+        .attr("stroke-dasharray", "5, 5");
 
     // ノード
     const node = svg.selectAll("circle")
