@@ -42,16 +42,21 @@ struct Move {
     River river;
 };
 
+// 呼ばれる順番
+//
+// ゲームが始まる前
+//   1. Init
+//   2. Setup
+//   3. SaveState
+//
+// ゲームの途中（ターンごと）
+//   1. Init
+//   2. LoadState
+//   3. Gameplay
+//   4. SaveState
 class AI {
 public:
     virtual std::string name() const { return typeid(*this).name(); }
-    // 呼ばれる順番
-    // 1. Init
-    // (2. Setup         ゲームが始まる前の1回のみ呼ばれる)
-    // 3. LoadState
-    // 4. Gameplay
-    // 5. SaveState
-
 
     // ターンが来るごとに呼び出される
     // map の指すオブジェクトは Run() の実行中は存在が保証される
@@ -60,7 +65,7 @@ public:
     // ターン開始時に呼ばれる
     virtual void LoadState(Json&& json) = 0;
 
-    // ターン終了時に呼ばれ
+    // ターン終了時に呼ばれる
     // 返したJsonは次にLoadStateで読み込まれる
     virtual Json SaveState() = 0;
 
