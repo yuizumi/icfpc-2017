@@ -1,4 +1,5 @@
 const INF = 10000000.0;
+const scoreSelector = '#score-cell';
 const colors = {
     link: [
         {
@@ -30,7 +31,7 @@ const colors = {
 
 const drawLabels = function () {
     
-    const scoreSelector = '#score-cell';
+    
     const rect = d3.select(scoreSelector)
         .selectAll("div")
         .data(colors.link)
@@ -94,6 +95,7 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
     const nodeRadius = 12;
     const svgMargin = 24;
     d3.select(rootSelector).html('');
+    d3.select(rootSelector).html(scoreSelector);
 
     let xMin = INF;
     let xMax = -INF;

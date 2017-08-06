@@ -109,7 +109,7 @@ const VisualizeTest = function () {
     vis.update(0, 1, 1);
     vis.update(0, 2, 2);
     vis.rollback(0, 1);
-    vis.updateScore(scores);
+    // vis.updateScore(scores);
 
     return vis;
 };
