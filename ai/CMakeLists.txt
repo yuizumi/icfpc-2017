@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 add_library(distance_map distance_map.cpp)
+add_library(reachable_set reachable_set.cpp)
 add_library(river_set river_set.cpp)
 add_library(union_find union_find.cpp)
 
