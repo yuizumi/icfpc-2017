@@ -50,32 +50,32 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
     const node_radius = 10;
 
     d3.select(rootSelector).html('');
+
+    const nodes = _.map(data.nodes, function (node, i) {
+        return {
+            id: node.id,
+            index: nodeIndexDic[node.id],
+            x: node.x,
+            y: node.y,
+            isLambda: data.lambdas.indexOf(node.id) > -1,
+        }
+    });
+
     const edges = _.map(data.edges, function (edge, i) {
         return {
-            source: nodeIndexDic[edge[0]],
-            target: nodeIndexDic[edge[1]],
+            source: nodes[nodeIndexDic[edge[0]]],
+            target: nodes[nodeIndexDic[edge[1]]],
             sourceId: edge[0],
             targetId: edge[1],
             user: -1
         }
     });
 
-    const nodes = _.map(data.nodes, function (node, i) {
-        return {id: node, isLambda: data.lambdas.indexOf(node) > -1}
-    });
-
-
-    const force = d3.layout.force()
-        .nodes(nodes)
-        .links(edges)
-        .size([width, height])
-        .linkDistance(50)
-        .charge(-200);
-
     const svg = d3.select(rootSelector).append("svg")
         .attr({width: width, height: height});
 
     //リンク
+    console.log(JSON.stringify(edges));
     const link = svg.selectAll("line")
         .data(edges)
         .enter()
@@ -90,25 +90,8 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
             return linksToSelectorId(
                 rootSelector, edge.sourceId, edge.targetId
             );
-        });
-
-
-    // ノード
-    const node = svg.selectAll("circle")
-        .data(nodes)
-        .enter()
-        .append("circle")
-        .attr({
-            r: node_radius,
-            opacity: 0.5
         })
-        .attr("fill", function (d) {
-            return d.isLambda ? "red" : "gray";
-        })
-        .call(force.drag);
-
-    force.on("tick", function () {
-        link.attr(
+        .attr(
             {
                 x1: function (d) {
                     return d.source.x;
@@ -123,7 +106,20 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
                     return d.target.y;
                 }
             });
-        node.attr({
+    
+    // ノード
+    const node = svg.selectAll("circle")
+        .data(nodes)
+        .enter()
+        .append("circle")
+        .attr({
+            r: node_radius,
+            opacity: 0.5
+        })
+        .attr("fill", function (d) {
+            return d.isLambda ? "red" : "gray";
+        })
+        .attr({
             cx: function (d) {
                 return d.x;
             },
@@ -131,8 +127,8 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
                 return d.y;
             }
         });
-
-    });
+     
+    // });
     // const sample = d3.select(rootSelector).append("svg")
     //     .attr("class", "sample")
     //     .attr({width: 100, height: height});
@@ -152,5 +148,5 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
     //     .attr('cx', 50)
     //     .attr('cy', 50)
     
-    force.start();
+    // force.start();
 };

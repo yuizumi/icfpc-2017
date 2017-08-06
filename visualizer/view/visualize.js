@@ -36,7 +36,7 @@ const Visualizer = function (rootSelector) {
 
         this.NodeIndexDic = {};
         for (let i = 0; i < data.nodes.length; i++) {
-            this.NodeIndexDic[data.nodes[i]] = i;
+            this.NodeIndexDic[data.nodes[i].id] = i;
         }
 
         this.setMapData(data);
@@ -64,9 +64,30 @@ const VisualizeTest = function () {
     let vis = new Visualizer('#main-visualize-cell');
 
     vis.createMap({
-        nodes: [0, 1, 2, 5],
+        nodes: [
+            {
+                id: 0,
+                x: 20,
+                y: 50
+            },
+            {
+                id: 1,
+                x: 50,
+                y: 50
+            },
+            {
+                id: 2,
+                x: 50,
+                y: 100
+            },
+            {
+                id: 5,
+                x: 100,
+                y: 100
+            }
+        ],
         edges: [
-            [0, 5],
+            // [0, 5],
             [0, 1],
             [0, 2]
         ],
