@@ -10,20 +10,28 @@
 
 #include "json.h"
 
-using SiteId = int;  // int64_t?
+// 正規化
+using SiteId = int;
 struct River { SiteId source, target; };  // 向きは関係ない
 
 class Map {
 public:
-    const std::vector<SiteId>& sites() const { return sites_; }   // aka. nodes
-    std::vector<SiteId>& sites() { return sites_; }
+    static Map Parse(const Json& map_json);
+
+    int num_sites() const { return site_ids_.size(); }
+
     const std::vector<River>& rivers() const { return rivers_; }  // aka. edges
-    std::vector<River>& rivers() { return rivers_; }
     const std::vector<SiteId>& mines() const { return mines_; }
-    std::vector<SiteId>& mines() { return mines_; }
+
+    // NOT FOR AI ROUTINES.
+    using JsonSiteId = int64_t;
+    JsonSiteId ToJsonId(SiteId i) const { return site_ids_[i]; }
+    SiteId ToSiteId(JsonSiteId json_id) const;
 
 private:
-    std::vector<SiteId> sites_;
+    explicit Map(std::vector<JsonSiteId> site_ids);
+
+    std::vector<JsonSiteId> site_ids_;
     std::vector<River> rivers_;
     std::vector<SiteId> mines_;
 };
