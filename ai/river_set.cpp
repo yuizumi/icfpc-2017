@@ -1,19 +1,16 @@
 #include "river_set.h"
 
-Json SerializeRiverSet(const RiverSet& river_set) {
-    Json json = Json::array();
-    for (const River& river : river_set) {
-        json.push_back({{"source", river.source}, {"target", river.target}});
-    }
-    return json;
+void from_json(const Json& json, River& river) {
+    river = River(json[0], json[1]);
+}
+void to_json(Json& json, const River& river) {
+    json = Json::array({river.source, river.target});
 }
 
-RiverSet DeserializeRiverSet(const Json& json) {
-    RiverSet river_set;
-    for (const Json& river : json) {
-        const SiteId source = river["source"];
-        const SiteId target = river["target"];
-        river_set.insert({source, target});
-    }
-    return river_set;
+void from_json(const Json& json, RiverSet& river_set) {
+    river_set.insert(json.begin(), json.end());
+}
+void to_json(Json& json, const RiverSet& river_set) {
+    json = Json::array();
+    for (const River& river : river_set) json.push_back(river);
 }
