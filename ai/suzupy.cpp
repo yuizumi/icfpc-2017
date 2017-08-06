@@ -93,7 +93,7 @@ class Suzupy : public AI {
     void Setup() override {
         rivers_.insert(map_->rivers().begin(), map_->rivers().end());
         for (int i = 0; i < num_punters_; i++) {
-            UnionFind uf_trees(map_->sites().size());
+            UnionFind uf_trees(map_->num_sites());
             punterTrees_.push_back(uf_trees);
         }
         for (int i = 0; i < num_punters_; i++) {
