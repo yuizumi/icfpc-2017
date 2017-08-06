@@ -52,37 +52,39 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
     d3.select(rootSelector).html('');
 
     console.log(nodeIndexDic);
-    
-    x_min = 10000000;
-    x_max = 0;
-    y_min = 10000000;
-    y_max = 0;
+
+    let x_min = 10000000.0;
+    let x_max = -10000000.0;
+    let y_min = 10000000.0;
+    let y_max = -10000000.0;
     for (let i = 0; i < data.nodes.length; i++) {
         x_min = Math.min(data.nodes[i].x, x_min);
         y_min = Math.min(data.nodes[i].y, y_min);
         x_max = Math.max(data.nodes[i].x, x_max);
         y_max = Math.max(data.nodes[i].y, y_max);
     }
-    console.log(x_min, y_min);
-    
+    //console.log(x_max,y_max,x_min, y_min);
+
     x_1 = (width - 20) / (x_max - x_min);
-    x_center = (x_max - x_min) / 2;
-    
+    x_center = (x_max + x_min) / 2;
+
     y_1 = (height - 20) / (y_max - y_min);
-    y_center = (y_max - y_min) / 2;
-    
-    console.log(x_1, x_center, y_1, y_center);
-            
-    
+    y_center = (y_max + y_min) / 2;
+
+    //console.log(x_1, x_center, y_1, y_center);
+
+
     const nodes = _.map(data.nodes, function (node, i) {
         return {
             id: node.id,
             index: nodeIndexDic[node.id],
-            x: x_center + node.x * x_1,
-            y: y_center + node.y * y_1,
+            x: 400 - x_center * x_1 + node.x * x_1,
+            y: 400 - y_center * y_1 + node.y * y_1,
             isLambda: data.lambdas.indexOf(node.id) > -1,
         }
     });
+
+    //console.log(nodes);
 
     const edges = _.map(data.edges, function (edge, i) {
         return {
@@ -129,7 +131,7 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
                     return d.target.y;
                 }
             });
-    
+
     // ノード
     const node = svg.selectAll("circle")
         .data(nodes)
@@ -150,7 +152,7 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
                 return d.y;
             }
         });
-     
+
     // });
     // const sample = d3.select(rootSelector).append("svg")
     //     .attr("class", "sample")
@@ -170,6 +172,6 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
     //     })
     //     .attr('cx', 50)
     //     .attr('cy', 50)
-    
+
     // force.start();
 };
