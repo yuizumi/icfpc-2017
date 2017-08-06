@@ -81,14 +81,13 @@ class Suzupy : public AI {
     void Setup() override {
         rivers_.insert(map_->rivers().begin(), map_->rivers().end());
         for (int i = 0; i < num_punters_; i++) {
-            UnionFind uf_trees(map_->mines().size());
-            // for (const SiteId mine : map_.mines())
-            //     uf_trees;
+            UnionFind uf_trees(map_->sites().size());
             punterTrees_.push_back(uf_trees);
         }
     }
 
     Move Gameplay(const std::vector<Move>& moves) override {
+        // greedy
         for (const Move& m : moves) {
             if (m.action == kClaim) rivers_.erase(m.river);
         }
