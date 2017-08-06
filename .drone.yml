@@ -1,6 +1,7 @@
 pipeline:
   test:
     image: suzupy/icfpc-love-and-lies
+      pull: true
     commands:
       - apt-get install cmake
       - cd ai
