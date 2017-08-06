@@ -32,7 +32,7 @@ def emulate(punter_clients, map_dict, logger):
         # setup
         ready = punter.client.setup({
             'punter': punter.id,
-            'punters': len(punters),
+            'punters': len(punter_clients),
             'map': map_dict })
         if 'state' in ready:
             punter.state = ready['state']
