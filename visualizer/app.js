@@ -40,6 +40,22 @@ Operation.prototype.getMoveData = function(response){
   return {"claim":{"p":punter,"s":s,"t":t}};
 }
 
+Operation.prototype.getSplurgeData = function(response){
+  let punter = response['punter'];
+  let list = [];
+  for(let i = 0; i < response['route'].length-1;i++){
+    let s = response['route'][i];
+    let t = response['route'][i+1];
+    if(s>t){
+      let tmp = s;
+      s = t;
+      t = tmp;
+    }
+    list.push([s,t]);
+  }
+  return {'splurge':{"p":punter,"r":list}};
+}
+
 var Game = function(gameId,selector){
   this._gameId = gameId;
   this._turn = 0;
@@ -82,6 +98,10 @@ Game.prototype.updateVis = function (data) {
   }else if('claim' in data){
     let tmp = data['claim'];
     this._vis.update(tmp['s'],tmp['t'],tmp['p']);
+  }else if('splurge' in data){
+    for(dd of data['splurge']['r']){
+      this._vis.update(dd[0],dd[1],data['splurge']['p']);
+    }
   }
 };
 
@@ -89,6 +109,10 @@ Game.prototype.roleBackVis = function (data) {
   if('claim' in data){
     let tmp = data['claim'];
     this._vis.rollback(tmp['s'],tmp['t']);
+  }else if('splurge' in data){
+    for(dd of data['splurge']['r']){
+      this._vis.rollback(dd[0],dd[1]);
+    }
   }
 };
 
@@ -121,6 +145,9 @@ Game.prototype.updateGame = function () {
     d.updateTurn();
     if('claim' in response){
       data = ope.getMoveData(response['claim']);
+      d.updateVis(data);
+    }else if('splurge' in response){
+      data = ope.getSplurgeData(response['splurge']);
       d.updateVis(data);
     }
   };})(this)).fail((function(d) {return function(response,status,error){
@@ -168,6 +195,9 @@ Game.prototype.backOneStep = function(){
     let ope = new Operation();
     if('claim' in response){
       data = ope.getMoveData(response['claim']);
+      d.roleBackVis(data);
+    }else if('splurge' in response){
+      data = ope.getSplurgeData(response['splurge']);
       d.roleBackVis(data);
     }
   };})(this));
