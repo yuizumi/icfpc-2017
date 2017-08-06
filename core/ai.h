@@ -67,7 +67,13 @@ public:
 
     // ターンが来るごとに呼び出される
     // map の指すオブジェクトは Run() の実行中は存在が保証される
-    virtual void Init(int punter, int num_punters, const Map* map) = 0;
+    // settings の中身は追加問題文を参照のこと
+    virtual void Init(int punter, int num_punters, const Map* map,
+                      const Json& settings) {
+        Init(punter, num_punters, map);  // 古いコードのためのもの
+    }
+    // DEPRECATED
+    virtual void Init(int punter, int num_punters, const Map* map) {}
 
     // ターン開始時に呼ばれる
     virtual void LoadState(Json&& json) = 0;
