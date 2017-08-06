@@ -6,13 +6,13 @@ map_dict = None
 answers = None
 score = None
 
-# stdin should be lamdact stderr
+# stdin should be lamduct stderr
 for line in sys.stdin:
-    try:
-        json_str = line[line.find('{'): line.rfind('}') + 1]
-        json_dict = json.loads(json_str)
-    except:
-        continue
+    if 'Game server:' not in line: continue
+    start = line.find('{')
+    if start < 0: continue
+    json_str = line[start: line.rfind('}') + 1]
+    json_dict = json.loads(json_str)
     if map_dict is None and 'map' in json_dict:
         map_dict = json_dict['map']
         score = Score(map_dict, json_dict['punters'])

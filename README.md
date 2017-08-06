@@ -11,7 +11,10 @@ $ make
 Please install [lamduct](https://github.com/icfpcontest2017/lambda-duct) before.
 
 ```
-$ lamduct ./some_ai --log-level 3 --game-port 9XXX
+$ lamduct ./some_ai --log-level 3 --game-port 9XXX 2> log.txt
+$
+$ # if you want to use visualizer:
+$ python3 offline/lamduct_to_log.py < log.txt
 ```
 
 You can get port numbers from http://punter.inf.ed.ac.uk/status.html.
