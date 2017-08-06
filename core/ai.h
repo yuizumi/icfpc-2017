@@ -26,10 +26,10 @@ public:
     // NOT FOR AI ROUTINES.
     using JsonSiteId = int64_t;
     JsonSiteId ToJsonId(SiteId i) const { return site_ids_[i]; }
+    SiteId ToSiteId(JsonSiteId json_id) const;
 
 private:
     explicit Map(std::vector<JsonSiteId> site_ids);
-    SiteId ToSiteId(JsonSiteId json_id) const;
 
     std::vector<JsonSiteId> site_ids_;
     std::vector<River> rivers_;

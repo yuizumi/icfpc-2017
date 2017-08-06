@@ -44,14 +44,14 @@ void Write(const Json& json) {
     WriteString(json_str);
 }
 
-std::vector<Move> ParseMove(const Json& json) {
+std::vector<Move> ParseMove(const Json& json, const Map& map) {
     std::vector<Move> moves(json["moves"].size());
 
     for (const auto& e : json["moves"]) {
         const auto claim = e.find("claim");
         if (claim != e.end()) {
-            const SiteId source = (*claim)["source"];
-            const SiteId target = (*claim)["target"];
+            const SiteId source = map.ToSiteId((*claim)["source"]);
+            const SiteId target = map.ToSiteId((*claim)["target"]);
             moves[(*claim)["punter"]] = {Move::Action::kClaim, {source, target}};
         } else {
             moves[e["pass"]["punter"]] = {Move::Action::kPass, {}};
@@ -76,7 +76,7 @@ void DoGameplay(AI* ai, Json&& json) {
     const Map map = Map::Parse(state["map"]);
     ai->Init(id, state["punters"], &map);
     ai->LoadState(std::move(state["custom"]));
-    Move next_move = ai->Gameplay(ParseMove(json["move"]));
+    Move next_move = ai->Gameplay(ParseMove(json["move"], map));
     state["custom"] = ai->SaveState();
 
     switch (next_move.action) {
@@ -95,7 +95,7 @@ void DoGameplay(AI* ai, Json&& json) {
 
 }  // namespace
 
-Map::Map(std::vector<Map::JsonSiteId> site_ids) {
+Map::Map(std::vector<JsonSiteId> site_ids) {
     std::sort(site_ids.begin(), site_ids.end());
     site_ids_ = std::move(site_ids);
 }
