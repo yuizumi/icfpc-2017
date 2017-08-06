@@ -106,7 +106,7 @@ class Suzupy : public AI {
         }
     }
 
-    // greedy
+    // forest相当
     Move Gameplay(const std::vector<Move>& moves) override {
         // timeoutなどで嘘になるけどpunterIdを知る方法がこれ以外にないので暫定対応
         for(int i = 0; i < moves.size(); i++) {
@@ -120,16 +120,15 @@ class Suzupy : public AI {
             }
         }
         for (const River& river : rivers_) {
-            for (const SiteId& mine : map_->mines()) {
-                if(river.source == mine || river.target == mine) {
-                    return {kClaim, river};
-                }
+            if (reachables_[id_].count(river.source) || reachables_[id_].count(river.target)) {
+                return {kClaim, river};
             }
         }
         if (rivers_.empty()) {
             return {kPass, {}};
         } else {
-            return {kClaim, *rivers_.begin()};
+            const River& river = *rivers_.begin();
+            return {kClaim, river};
         }
     }
 
