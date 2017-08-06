@@ -5,14 +5,23 @@
 
 // NOTE(yuizumi): まだいろいろ変わる可能性あり
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
 #include "json.h"
 
-// 正規化
+// (0..N-1) に正規化されている
+// サーバーから通知される ID とは異なるかもしれない
 using SiteId = int;
-struct River { SiteId source, target; };  // 向きは関係ない
+
+struct River {
+    SiteId source, target;
+    River(SiteId source_in, SiteId target_in)
+        : source(std::min(source_in, target_in)),
+          target(std::max(source_in, target_in)) {}
+    River() = default;
+};
 
 class Map {
 public:
