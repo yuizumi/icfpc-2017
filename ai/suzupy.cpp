@@ -59,6 +59,7 @@ class Suzupy : public AI {
     }
 
     Move Gameplay(const std::vector<Move>& moves) override {
+        return {kPass, {}}; // nullai相当のダミー
     }
 
     const Map* map_;
