@@ -76,7 +76,7 @@ void ParseMove(const Json& json, const Map& map,
 void DoSetup(AI* ai, Json&& json) {
     const int id = json["punter"];
     const Map map = Map::Parse(json["map"]);
-    ai->Init(id, json["punters"], &map);
+    ai->Init(id, json["punters"], &map, json["settings"]);
     ai->Setup();
     json["custom"] = ai->SaveState();
     Write({{"ready", id}, {"state", json}});
@@ -87,7 +87,7 @@ void DoGameplay(AI* ai, Json&& json) {
     const int id = state["punter"];
     const int num_punters = state["punters"];
     const Map map = Map::Parse(state["map"]);
-    ai->Init(id, num_punters, &map);
+    ai->Init(id, json["punters"], &map, state["settings"]);
     ai->LoadState(std::move(state["custom"]));
     std::vector<Move> moves(num_punters);
     ParseMove(json["move"], map, &moves, ai);
