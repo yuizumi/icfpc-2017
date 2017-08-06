@@ -1,5 +1,4 @@
-import numpy as np
-from scipy.sparse import csgraph
+from score import Score
 
 class PunterState:
     def __init__(self, client):
@@ -9,10 +8,6 @@ class PunterState:
         self.state = None
         self.moves = []
         self.last_move = None
-
-def edges_equal(a, b):
-    return ((a['source'] == b['source'] and a['target'] == b['target'])
-        or (a['source'] == b['target'] and a['target'] == b['source']))
 
 def emulate(punter_clients, map_dict, logger):
     logger.start()
@@ -40,6 +35,7 @@ def emulate(punter_clients, map_dict, logger):
     logger.info('punters', [{'punter': p.id, 'name': p.name} for p in punters])
 
     # game
+    score = Score(map_dict, len(punters))
     punter_index = 0
     all_moves = []
     for turn in range(len(map_dict['rivers'])):
@@ -53,62 +49,18 @@ def emulate(punter_clients, map_dict, logger):
         # save state
         punter.state = move.get('state')
         # validate and save move
-        if 'claim' in move:
-            claim = move['claim']
-            assert claim['punter'] == punter.id
-            rivers = [r for r in map_dict['rivers']
-                      if edges_equal(r, claim) and 'punter' not in r]
-            if len(rivers) == 1:
-                rivers[0]['punter'] = punter.id
-            else:
-                logger.warn(turn, move)
-                move = None
-        elif 'pass' not in move:
-            logger.warn(turn, move)
-            move = None
-        # error json is regarded as pass
-        if move is None:
-            logger.show('suspicious move', {'turn': turn, 'name': punter.name})
-            move = {'pass': {'punter': punter.id}, 'state': punter.state}
-        logger.turn(turn, move)
-        if 'state' in move: del move['state']
-        logger.show(turn, move)
-        punter.moves.append(move)
-        all_moves.append(move)
-        punter.last_move = move
+        valid_move = score.move(move, punter, logger, turn)
+        logger.turn(turn, valid_move)
+        if 'state' in valid_move: del valid_move['state']
+        logger.show(turn, valid_move)
+        punter.moves.append(valid_move)
+        all_moves.append(valid_move)
+        punter.last_move = valid_move
         punter_index = (punter_index + 1) % len(punters)
-
-    # calc score
-    site_count = len(map_dict['sites'])
-    site_to_index = {}
-    for i in range(site_count):
-        site_to_index[map_dict['sites'][i]['id']] = i
-    graph = np.zeros([site_count] * 2, np.bool)
-    for r in map_dict['rivers']:
-        s = site_to_index[r['source']]
-        t = site_to_index[r['target']]
-        graph[s, t] = True
-        graph[t, s] = True
-    distance = csgraph.floyd_warshall(graph, False, False, True)
-    for punter in punters:
-        subgraph = np.zeros_like(graph)
-        for m in punter.moves:
-            if 'claim' not in m: continue
-            s = site_to_index[m['claim']['source']]
-            t = site_to_index[m['claim']['target']]
-            subgraph[s, t] = True
-            subgraph[t, s] = True
-        subdist = csgraph.floyd_warshall(subgraph, False, False, True)
-        punter.score = 0
-        for mine in map_dict['mines']:
-            mine_index = site_to_index[mine]
-            for i in range(site_count):
-                if not np.isinf(subdist[mine_index, i]):
-                    punter.score += int(distance[mine_index, i]) ** 2
 
     # send score
     moves = [p.last_move for p in punters]
-    scores = [{'punter': p.id, 'score': p.score} for p in punters]
+    scores = [{'punter': p.id, 'score': score.calc(p.id)} for p in punters]
     for punter in punters:
         hand_req = punter.client.start_handshake()
         assert hand_req['me'] == punter.name
@@ -119,7 +71,7 @@ def emulate(punter_clients, map_dict, logger):
 
     # log
     logger.info('moves_summary', all_moves)
-    logger.info('map_result', map_dict)
+    logger.info('rivers_result', score.rivers)
     logger.info('scores', scores)
     logger.show('scores', scores)
     logger.end()
