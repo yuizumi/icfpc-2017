@@ -114,7 +114,7 @@ class Suzupy : public AI {
                 reachables_[i].insert(m.river.target);
             }
         }
-        // 他のmineと接続しそうな人がいたら妨害する
+        // 他のmineと接続しそうな人 or mineとつながっていない連結成分をつなごうとしている怪しい人がいたら妨害する
         for (const River& river : rivers_) {
             for (int i = 0; i < num_punters_; i++)
                 if (i != id_) {
@@ -128,7 +128,8 @@ class Suzupy : public AI {
                     } else {
                         continue;
                     }
-                    if (reachables_[i].count(new_) && !punterTrees_[i].findSet(old_, new_))
+                    if ((reachables_[i].count(new_) || punterTrees_[i].size(new_) >= 2)
+                        && !punterTrees_[i].findSet(old_, new_))
                         return {kClaim, river};
                 }
         }
