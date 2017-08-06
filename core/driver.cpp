@@ -19,16 +19,28 @@ Json Read() {
         len = len * 10 + (ch - '0');
     }
     std::unique_ptr<char[]> body(new char[len + 1]);
-    read(0, body.get(), len);
     body[len] = '\0';
+    int pos = 0;
+    while (pos < len) {
+        int read_len = read(0, body.get() + pos, len - pos);
+        if (read_len > 0) pos += read_len;
+    }
     return Json::parse(body.get());
 }
 
+void WriteString(const std::string& str) {
+    int len = str.length();
+    int pos = 0;
+    while (pos < len) {
+	int write_len = write(1, str.c_str() + pos, len - pos);
+	if (write_len > 0) pos += write_len;
+    }
+}
+
 void Write(const Json& json) {
-    const std::string body = json.dump();
-    const std::string head = std::to_string(body.length()) + ":";
-    write(1, head.c_str(), head.length());
-    write(1, body.c_str(), body.length());
+    const std::string json_str = json.dump();
+    WriteString(std::to_string(json_str.length()) + ":");
+    WriteString(json_str);
 }
 
 Map ParseMap(const Json& json) {
