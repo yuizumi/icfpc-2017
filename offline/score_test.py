@@ -3,12 +3,15 @@ import sys
 from score import Score
 
 map_dict = None
+moves = []
+last_claim = None # this should be added to moves
 answers = None
 score = None
 
 # stdin should be lamduct stderr
 for line in sys.stdin:
-    if 'Game server:' not in line: continue
+    if 'Game server:' not in line and 'Client:' not in line:
+        continue
     start = line.find('{')
     if start < 0: continue
     json_str = line[start: line.rfind('}') + 1]
@@ -24,6 +27,10 @@ for line in sys.stdin:
         score.move_all(json_dict['stop']['moves'])
         if answers is None:
             answers = json_dict['stop']['scores']
+    if 'claim' in json_dict:
+        last_claim = json_dict
+
+score.move(last_claim)
 
 result = []
 for answer in answers:
@@ -32,4 +39,4 @@ for answer in answers:
     result.append({'punter': punter, 'score': calced})
     print('calced:', calced, 'answer:', answer['score'])
 
-assert result == answer
+assert result is answer
