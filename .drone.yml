@@ -2,6 +2,7 @@ pipeline:
   test:
     image: debian:7
     commands:
+      - apt-get install cmake
       - cd ai
       - cmake .
       - make
