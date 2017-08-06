@@ -1,3 +1,5 @@
+[![Build Status](http://52.199.48.163/api/badges/yuizumi/icfpc-2017/status.svg)](http://52.199.48.163/yuizumi/icfpc-2017)
+
 # build
 
 Note the `cmake`'s argument is a parent directory (*two* dots).
