@@ -55,6 +55,12 @@ var Game = function(gameId,selector){
     this._turn++;
     return this._turn;
   }
+  this.roleBackTurn = function(){
+    if(this._turn >= 0){
+        this._turn--;
+    }
+    return this._turn;
+  }
 }
 
 Game.prototype.updateVis = function (data) {
@@ -65,6 +71,27 @@ Game.prototype.updateVis = function (data) {
     this._vis.update(tmp['s'],tmp['t'],tmp['p']);
   }
 };
+
+Game.prototype.roleBackVis = function () {
+  if('claim' in data){
+    let tmp = data['claim'];
+    this._vis.rollback(tmp['s'],tmp['t']);
+  }
+};
+
+Game.prototype.finishGame = function () {
+  let url = 'log/'+String(this.getGameId())+'/scores.json';
+  let jsonlog = $('#jsonlog');
+  $.ajax({
+    type:"GET",
+    dataType:"json",
+    url:url
+    }
+  ).done((function(d) {return function(response,status,jqXHR){
+    jsonlog.val(jqXHR['responseText']+' The Game is Over!');
+    d._vis.updateScore(jqXHR['responseText']);
+  };})(this));
+}
 
 Game.prototype.updateGame = function () {
   let url = 'log/'+String(this.getGameId())+'/'+String(this.getTurn())+'.json';
@@ -78,14 +105,17 @@ Game.prototype.updateGame = function () {
     let data = {};
     let ope = new Operation();
     jsonlog.val(jqXHR['responseText']);
-    data = ope.getMoveData(response['claim']);
     d.updateTurn();
-    d.updateVis(data);
-  };})(this)).fail(function(response,status,error){
+    if('claim' in response){
+      data = ope.getMoveData(response['claim']);
+      d.updateVis(data);
+    }
+  };})(this)).fail((function(d) {return function(response,status,error){
     jsonlog.val(error);
+    d.finishGame();
     clearInterval(timer);
-    alert("The game is over!! or some error has occur.")
-  });
+    //alert("The game is over!! or some error has occur.")
+  };})(this));
 };
 
 Game.prototype.initMap = function (){
@@ -108,6 +138,39 @@ Game.prototype.initMap = function (){
   });
 }
 
+Game.prototype.backOneStep = function(){
+  this.roleBackTurn();
+  let url = 'log/'+String(this.getGameId())+'/'+String(this.getTurn())+'.json';
+  let jsonlog = $('#jsonlog');
+  $.ajax({
+    type:"GET",
+    dataType:"json",
+    url:url
+    }
+  ).done((function(d) {return function(response,status,jqXHR){
+    let data = {};
+    let ope = new Operation();
+    if('claim' in response){
+      data = ope.getMoveData(response['claim']);
+      d.roleBackVis(data);
+    }
+  };})(this));
+
+  if(this.getTurn() > 0){
+    let url = 'log/'+String(this.getGameId())+'/'+(String(this.getTurn())-1)+'.json';
+    $.ajax({
+      type:"GET",
+      dataType:"json",
+      url:url
+      }
+    ).done(function(response,status,jqXHR){
+      jsonlog.val(jqXHR['responseText'])
+    });
+  }else{
+      jsonlog.val('');
+  }
+}
+
 var game = {};
 var timer = {};
 
@@ -118,6 +181,12 @@ $('#play').on('click',function(){
 
 $('#next').on('click',function(){
   game.updateGame();
+});
+
+$('#back').on('click',function(){
+  if(game.getTurn() >0){
+    game.backOneStep();
+  }
 });
 
 $('#autoplay').on('click',function(){
