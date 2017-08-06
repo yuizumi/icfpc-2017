@@ -1,6 +1,6 @@
 pipeline:
   test:
-    image: debian:7
+    image: suzupy/icfpc-love-and-lies
     commands:
       - apt-get install cmake
       - cd ai
