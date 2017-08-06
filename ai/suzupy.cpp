@@ -25,7 +25,7 @@ public:
     vector<int> data;
     UnionFind(int size): data(size, -1) { }
     UnionFind(vector<int> v) { data = v; }
-    bool UnionSet(int x, int y){
+    bool unionSet(int x, int y){
         x = root(x);
         y = root(y);
         if(x != y) {
@@ -82,14 +82,21 @@ class Suzupy : public AI {
         rivers_.insert(map_->rivers().begin(), map_->rivers().end());
         for (int i = 0; i < num_punters_; i++) {
             UnionFind uf_trees(map_->sites().size());
+            // UnionFind uf_trees(map_->num_sites()); // ai.hpp でこちらに変更される予定
             punterTrees_.push_back(uf_trees);
         }
     }
 
+    // greedy
     Move Gameplay(const std::vector<Move>& moves) override {
-        // greedy
-        for (const Move& m : moves) {
-            if (m.action == kClaim) rivers_.erase(m.river);
+        // timeoutなどで嘘になるけどpunterIdを知る方法がこれ以外にないので暫定対応
+        for(int i = 0; i < moves.size(); i++) {
+        // for (const Move& m : moves) {
+            auto m = moves[i];
+            if (m.action == kClaim) {
+                rivers_.erase(m.river);
+                punterTrees_[i].unionSet(m.river.source, m.river.target);
+            }
         }
         for (const River& river : rivers_) {
             for (const SiteId& mine : map_->mines()) {
