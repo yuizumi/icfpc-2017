@@ -1,5 +1,8 @@
 #include <iostream>
+#include <tuple>
+#include <queue>
 #include <set>
+#include <map>
 
 #include "../core/ai.h"
 #include "../core/driver.h"
@@ -18,6 +21,8 @@ public:
 };
 
 class Coco : public AI {
+    using SiteDistance = tuple<SiteId, int>;
+
     void Init(int id, int num_punters, const Map* map) override {
         map_ = map;
     }
@@ -41,8 +46,35 @@ class Coco : public AI {
     void Setup() override {
         rivers_.insert(map_->rivers().begin(), map_->rivers().end());
 
+        // Siteに対してつながっているriver全てを列挙したmap
+        for (const River river : map_->rivers()) {
+            riverMap[river.source].push_back(river.target);
+            riverMap[river.target].push_back(river.source);
+        }
+
+        // 各mineから各Siteへの距離を先に計算するやつ
         for (const SiteId mine : map_->mines()) {
-            cout << "mine:" << mine << endl;
+            // mineからの全連結Siteへのdepth
+            queue<SiteDistance> queue;
+            set<SiteId> visited;
+            queue.push(make_tuple(mine, 0));
+            visited.insert(mine);
+            cerr << "mine:" << mine << endl;
+            while (!queue.empty()) {
+                SiteDistance sd = queue.front();
+                queue.pop();
+
+                int site = get<0>(sd);
+                int depth = get<1>(sd);
+                cerr << site << ":" << depth << endl;
+
+                for (auto site :riverMap[site]) {
+                    if(visited.find(site) != visited.end()) {continue;}
+                    visited.insert(site);
+                    queue.push(make_tuple(site, depth + 1));
+                    mineToSitesDistance[mine][site] = depth + 1;
+                }
+            }
         }
     }
 
@@ -58,6 +90,8 @@ class Coco : public AI {
     }
 
     const Map* map_;
+    map<SiteId, vector<SiteId>> riverMap;
+    map<SiteId, map<SiteId, int>> mineToSitesDistance;
     set<River, CompareRiver> rivers_;
 };
 
