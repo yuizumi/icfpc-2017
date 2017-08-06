@@ -19,9 +19,7 @@ class Suzupy : public AI {
 
     void LoadState(Json&& json) override {
         rivers_ = DeserializeRiverSet(json["rivers"]);
-        for (const Json& trees: json["punterTrees"]) {
-            punterTrees_.push_back(UnionFind::Deserialize(trees));
-        }
+        punterTrees_ = json["punterTrees"].get<decltype(punterTrees_)>();
         for (const Json& punter_reachables_json : json["reachables"]) {
             set<SiteId> punter_reachables;
             punter_reachables.insert(punter_reachables_json.begin(), punter_reachables_json.end());
@@ -30,10 +28,6 @@ class Suzupy : public AI {
     }
 
     Json SaveState() override {
-        Json json_punterTrees = Json::array();
-        for (const UnionFind& trees : punterTrees_) {
-            json_punterTrees.push_back(trees.Serialize());
-        }
         const Json json_rivers = SerializeRiverSet(rivers_);
         auto json_reachables = Json::array();
         for (set<SiteId> punter_reachables : reachables_) {
@@ -42,7 +36,7 @@ class Suzupy : public AI {
                 punter_reachables_json.push_back(siteId);
             json_reachables.push_back(punter_reachables_json);
         }
-        return {{"punterTrees", json_punterTrees}, {"rivers", json_rivers}, {"reachables", json_reachables}};
+        return {{"punterTrees", punterTrees_}, {"rivers", json_rivers}, {"reachables", json_reachables}};
     }
 
     void Setup() override {

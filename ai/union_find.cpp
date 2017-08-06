@@ -5,9 +5,6 @@ using namespace std;
 UnionFind::UnionFind(int size) : data_(size, -1) {
 }
 
-UnionFind::UnionFind(vector<int> v) : data_(std::move(v)) {
-}
-
 bool UnionFind::UnionSet(int x, int y) {
     x = root(x);
     y = root(y);
@@ -31,10 +28,10 @@ int UnionFind::size(int x) {
     return -data_[root(x)];
 }
 
-Json UnionFind::Serialize() const {
-    return data_;
+void from_json(const Json& json, UnionFind& value) {
+    value.data_ = json.get<vector<int>>();
 }
 
-UnionFind UnionFind::Deserialize(const Json& json) {
-    return UnionFind(json.get<vector<int>>());
+void to_json(Json& json, const UnionFind& value) {
+    json = value.data_;
 }
