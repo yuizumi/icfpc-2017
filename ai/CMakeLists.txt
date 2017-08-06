@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
+add_library(river_set river_set.cpp)
+
 add_executable(nullai nullai.cpp)
 target_link_libraries(nullai driver)
 add_executable(newbie newbie.cpp)
@@ -9,7 +11,7 @@ target_link_libraries(greedy driver)
 add_executable(forest forest.cpp)
 target_link_libraries(forest driver)
 add_executable(suzupy suzupy.cpp)
-target_link_libraries(suzupy driver)
+target_link_libraries(suzupy driver river_set)
 add_executable(suzupy-1.1 suzupy-1.1.cpp)
 target_link_libraries(suzupy-1.1 driver)
 add_executable(suzupy-1.2 suzupy-1.2.cpp)
