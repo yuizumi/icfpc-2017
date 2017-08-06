@@ -53,9 +53,18 @@ std::vector<Move> ParseMove(const Json& json, const Map& map) {
             const SiteId source = map.ToSiteId((*claim)["source"]);
             const SiteId target = map.ToSiteId((*claim)["target"]);
             moves[(*claim)["punter"]] = {Move::Action::kClaim, {source, target}};
-        } else {
-            moves[e["pass"]["punter"]] = {Move::Action::kPass, {}};
+            continue;
         }
+        const auto splurge = e.find("splurge");
+        if (splurge != e.end()) {
+            std::vector<SiteId> route;
+            for (Map::JsonSiteId json_id : (*splurge)["route"])
+                route.push_back(map.ToSiteId(json_id));
+            moves[(*splurge)["punter"]] = {Move::Action::kSplurge, {}};
+            moves[(*splurge)["punter"]].route = std::move(route);
+            continue;
+        }
+        moves[e["pass"]["punter"]] = {Move::Action::kPass, {}};
     }
 
     return moves;
@@ -80,16 +89,25 @@ void DoGameplay(AI* ai, Json&& json) {
     state["custom"] = ai->SaveState();
 
     switch (next_move.action) {
-    case Move::Action::kPass:
-        Write({{"pass", {{"punter", id}}}, {"state", state}});
-        break;
-    case Move::Action::kClaim:
-        const auto source = map.ToJsonId(next_move.river.source);
-        const auto target = map.ToJsonId(next_move.river.target);
-        const Json claim = {
-            {"punter", id}, {"source", source}, {"target", target}};
-        Write({{"claim", claim}, {"state", state}});
-        break;
+        case Move::Action::kPass:
+            Write({{"pass", {{"punter", id}}}, {"state", state}});
+            break;
+        case Move::Action::kClaim: {
+            const auto source = map.ToJsonId(next_move.river.source);
+            const auto target = map.ToJsonId(next_move.river.target);
+            const Json claim = {
+                {"punter", id}, {"source", source}, {"target", target}};
+            Write({{"claim", claim}, {"state", state}});
+            break;
+        }
+        case Move::Action::kSplurge: {
+            Json route = Json::array();
+            for (SiteId site : next_move.route)
+                route.push_back(map.ToJsonId(site));
+            const Json splurge = {{"punter", id}, {"route", route}};
+            Write({{"splurge", splurge}, {"state", state}});
+            break;
+        }
     }
 }
 

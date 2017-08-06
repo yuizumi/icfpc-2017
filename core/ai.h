@@ -37,9 +37,15 @@ private:
 };
 
 struct Move {
-    enum class Action { kPass, kClaim };
+    enum class Action { kPass, kClaim, kSplurge };
+    using Route = std::vector<SiteId>;
+
     Action action;
-    River river;
+    River river;  // kClaim のときだけ
+    Route route;  // kSplurge のときだけ
+
+    Move(Action action, River river) : action(action), river(river) {}
+    Move() = default;
 };
 
 class AI {
@@ -60,7 +66,8 @@ public:
 };
 
 // いちいち書くのが面倒くさいので。
-constexpr Move::Action kClaim = Move::Action::kClaim;
 constexpr Move::Action kPass = Move::Action::kPass;
+constexpr Move::Action kClaim = Move::Action::kClaim;
+constexpr Move::Action kSplurge = Move::Action::kSplurge;
 
 #endif  // AI_H_
