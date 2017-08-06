@@ -22,12 +22,12 @@ const Visualizer = function (rootSelector) {
         /*
          data: {
          nodes: [
-            {
-                id: 1,
-                x: 1,
-                y: 1
-            },
-            
+         {
+         id: 1,
+         x: 1,
+         y: 1
+         },
+
          ]
          edged: [[1, 2], [1, 5], [2, 3] ...],
          lambdas: [1 ...]
@@ -93,7 +93,11 @@ const VisualizeTest = function () {
         lambdas: [1]
     });
 
+    scores = [
+        {"punter": 0, "score": 27},
+        {"punter": 1, "score": 12}];
     vis.update(0, 1, 1);
+
     return vis;
 };
 
