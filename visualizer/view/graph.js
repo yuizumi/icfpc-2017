@@ -24,7 +24,7 @@ const colors = {
         },
         {
             id: 4,
-            color: '#a544ed',
+            color: '#8b2fed',
         },
     ],
 };
@@ -52,8 +52,8 @@ const drawLabels = function () {
             if (d.id < 0) {
                 return "<p style='margin:0'>empty</p><span></span>"
             }
-            return "<p style='margin:0'> user" + d.id + ": </p>"
-                + "<span id=" + scoreSelectorId(d.id) + ">0</span>"
+            return "<p style='margin:0'> user" + d.id + " : </p>"
+                   + "<span id=" + scoreSelectorId(d.id) + ">0</span>"
         })
         .selectAll('span')
         .style({
@@ -62,7 +62,6 @@ const drawLabels = function () {
             "display": "inline-block",
             "width": "100%",
         })
-    
 };
 
 const drawScore = function (scores) {
@@ -87,18 +86,21 @@ const updateEdge = function (rootSelector, srcId, targetId, user) {
     const _id = linksToSelectorId(rootSelector, srcId, targetId)
 
     const strokeWidth = user < 0 ? 2 : 4;
+    const dash = user < 0 ? "5, 5" : "5, 0";
     d3
         .selectAll('#' + _id)
         .style({
             "stroke-width": strokeWidth,
             "stroke": colors.link[user + 1].color,
-        });
+        })
+        .attr("stroke-dasharray", dash);
+
 };
 
 
 const createGraph = function (rootSelector, data, nodeIndexDic) {
-    const width = 800;
-    const height = 700;
+    const width = 900;
+    const height = 900;
     const nodeRadius = 12;
     const svgMargin = 24;
 
@@ -177,7 +179,8 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
                 y2: function (d) {
                     return d.target.y;
                 }
-            });
+            })
+        .attr("stroke-dasharray", "5, 5");
 
     // ノード
     const node = svg.selectAll("circle")

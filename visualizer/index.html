@@ -9,22 +9,23 @@
     body {
       padding-top: 70px;
     }
-    
-    
+
+
   </style>
 </head>
 <body>
 
 <nav class="navbar navbar-inverse navbar-fixed-top">
-  <div class="container">
+  <div class="container-fluid">
     <div class="navbar-header">
       <div class="navbar-brand">ICFPC 2017 Visualizer Site</div>
     </div>
   </div>
 </nav>
 
-<div class="container">
+<div class="container-fluid">
   <div class="row">
+
     <div class="col-md-3">
       <legend>Operation</legend>
       <div class="row">
@@ -41,22 +42,18 @@
           <button class="btn btn-danger" id="stopplay">Stop</button>
         </div>
       </div>
-    </div>
-    <div class="col-md-9">
       <legend>JSON Data</legend>
-      <textarea id="jsonlog" readonly="readonly" cols="100" rows="8"></textarea>
+      <textarea id="jsonlog" readonly="readonly" rows="8" style="width:100%"></textarea>
     </div>
-    <div>
+    
+    <div class="col-md-9">
       <legend>Visualizer</legend>
-      <div class="row">
-        <div class="col-md-12">
-          <div id="score-cell"></div>
-        </div>
+      <div>
+        <div id="score-cell"></div>
       </div>
-      <div class="row">
-        <div class="col-md-12">
-          <div id="main-visualize-cell"></div>
-        </div>
+
+      <div>
+        <div id="main-visualize-cell"></div>
       </div>
     </div>
   </div>
