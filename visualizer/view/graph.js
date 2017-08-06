@@ -53,7 +53,7 @@ const drawLabels = function () {
                 return "<p style='margin:0'>empty</p><span></span>"
             }
             return "<p style='margin:0'> user" + d.id + " : </p>"
-                + "<span id=" + scoreSelectorId(d.id) + ">0</span>"
+                   + "<span id=" + scoreSelectorId(d.id) + ">0</span>"
         })
         .selectAll('span')
         .style({
@@ -62,7 +62,6 @@ const drawLabels = function () {
             "display": "inline-block",
             "width": "100%",
         })
-
 };
 
 const drawScore = function (scores) {
