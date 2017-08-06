@@ -20,22 +20,15 @@ class Suzupy : public AI {
     void LoadState(Json&& json) override {
         rivers_ = json["rivers"].get<RiverSet>();
         punterTrees_ = json["punterTrees"].get<decltype(punterTrees_)>();
-        for (const Json& punter_reachables_json : json["reachables"]) {
-            set<SiteId> punter_reachables;
-            punter_reachables.insert(punter_reachables_json.begin(), punter_reachables_json.end());
-            reachables_.push_back(punter_reachables);
-        }
+        reachables_ = json["reachables"].get<decltype(reachables_)>();
     }
 
     Json SaveState() override {
-        auto json_reachables = Json::array();
-        for (set<SiteId> punter_reachables : reachables_) {
-            auto punter_reachables_json = Json::array();
-            for (const SiteId siteId : punter_reachables)
-                punter_reachables_json.push_back(siteId);
-            json_reachables.push_back(punter_reachables_json);
-        }
-        return {{"punterTrees", punterTrees_}, {"rivers", rivers_}, {"reachables", json_reachables}};
+        return {
+            {"rivers", rivers_},
+            {"punterTrees", punterTrees_},
+            {"reachables", reachables_},
+        };
     }
 
     void Setup() override {
