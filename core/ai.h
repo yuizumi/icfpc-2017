@@ -48,6 +48,18 @@ struct Move {
     Move() = default;
 };
 
+// 呼ばれる順番
+//
+// ゲームが始まる前
+//   1. Init
+//   2. Setup
+//   3. SaveState
+//
+// ゲームの途中（ターンごと）
+//   1. Init
+//   2. LoadState
+//   3. Gameplay
+//   4. SaveState
 class AI {
 public:
     virtual std::string name() const { return typeid(*this).name(); }
@@ -56,11 +68,17 @@ public:
     // map の指すオブジェクトは Run() の実行中は存在が保証される
     virtual void Init(int punter, int num_punters, const Map* map) = 0;
 
+    // ターン開始時に呼ばれる
     virtual void LoadState(Json&& json) = 0;
+
+    // ターン終了時に呼ばれる
+    // 返したJsonは次にLoadStateで読み込まれる
     virtual Json SaveState() = 0;
 
+    // ゲームが始まる前の準備処理
     virtual void Setup() = 0;
 
+    // メインのロジックをここに書く
     // moves[i] == {"punter": i} の直前のターンにおける手
     virtual Move Gameplay(const std::vector<Move>& moves) = 0;
 };
