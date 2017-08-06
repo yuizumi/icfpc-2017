@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <unistd.h>
+#include <algorithm>
 #include <string>
 
 #include "json.h"
@@ -43,19 +44,6 @@ void Write(const Json& json) {
     WriteString(json_str);
 }
 
-Map ParseMap(const Json& json) {
-    Map map;
-    for (const auto& site : json["sites"]) {
-        map.sites().push_back(site["id"]);
-    }
-    for (const auto& river : json["rivers"]) {
-        map.rivers().push_back({river["source"], river["target"]});
-    }
-    map.mines().insert(map.mines().end(),
-                       json["mines"].begin(), json["mines"].end());
-    return map;
-}
-
 std::vector<Move> ParseMove(const Json& json) {
     std::vector<Move> moves(json["moves"].size());
 
@@ -75,7 +63,7 @@ std::vector<Move> ParseMove(const Json& json) {
 
 void DoSetup(AI* ai, Json&& json) {
     const int id = json["punter"];
-    const Map map = ParseMap(json["map"]);
+    const Map map = Map::Parse(json["map"]);
     ai->Init(id, json["punters"], &map);
     ai->Setup();
     json["custom"] = ai->SaveState();
@@ -85,7 +73,7 @@ void DoSetup(AI* ai, Json&& json) {
 void DoGameplay(AI* ai, Json&& json) {
     Json state = json["state"];
     const int id = state["punter"];
-    const Map map = ParseMap(state["map"]);
+    const Map map = Map::Parse(state["map"]);
     ai->Init(id, state["punters"], &map);
     ai->LoadState(std::move(state["custom"]));
     Move next_move = ai->Gameplay(ParseMove(json["move"]));
@@ -96,8 +84,8 @@ void DoGameplay(AI* ai, Json&& json) {
         Write({{"pass", {{"punter", id}}}, {"state", state}});
         break;
     case Move::Action::kClaim:
-        const SiteId source = next_move.river.source;
-        const SiteId target = next_move.river.target;
+        const auto source = map.ToJsonId(next_move.river.source);
+        const auto target = map.ToJsonId(next_move.river.target);
         const Json claim = {
             {"punter", id}, {"source", source}, {"target", target}};
         Write({{"claim", claim}, {"state", state}});
@@ -106,6 +94,32 @@ void DoGameplay(AI* ai, Json&& json) {
 }
 
 }  // namespace
+
+Map::Map(std::vector<Map::JsonSiteId> site_ids) {
+    std::sort(site_ids.begin(), site_ids.end());
+    site_ids_ = std::move(site_ids);
+}
+
+Map Map::Parse(const Json& json) {
+    std::vector<JsonSiteId> site_ids;
+    for (const auto& site : json["sites"])
+        site_ids.push_back(site["id"]);
+    Map map(site_ids);
+    for (const auto& river : json["rivers"]) {
+        const SiteId source = map.ToSiteId(river["source"]);
+        const SiteId target = map.ToSiteId(river["target"]);
+        map.rivers_.push_back({source, target});
+    }
+    for (const auto& mine : json["mines"])
+        map.mines_.push_back(map.ToSiteId(mine));
+    return map;
+}
+
+SiteId Map::ToSiteId(JsonSiteId json_id) const {
+    const auto found = 
+        std::lower_bound(site_ids_.begin(), site_ids_.end(), json_id);
+    return found - site_ids_.begin();
+}
 
 void Run(AI* ai) {
     const std::string name = ai->name();
