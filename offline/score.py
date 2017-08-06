@@ -1,9 +1,13 @@
-import numpy as np
-from scipy.sparse import csgraph
-
 def edges_equal(a, b):
     return ((a['source'] == b['source'] and a['target'] == b['target'])
         or (a['source'] == b['target'] and a['target'] == b['source']))
+
+def floyd_warshall(graph):
+    n = len(graph)
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                graph[i][j] = min(graph[i][j], graph[i][k] + graph[k][j])
 
 class Score:
     def __init__(self, map_dict, punters):
@@ -53,8 +57,8 @@ class Score:
     def fill_graph_with_river(self, graph, river):
         s = self.site_to_index[river['source']]
         t = self.site_to_index[river['target']]
-        graph[s, t] = True
-        graph[t, s] = True
+        graph[s][t] = 1
+        graph[t][s] = 1
 
     def pre_calc(self):
         if self.pre_calced: return
@@ -66,23 +70,29 @@ class Score:
         for i in range(site_count):
             self.site_to_index[sites[i]['id']] = i
 
-        graph = np.zeros([site_count] * 2, np.bool)
+        graph = [[(0 if i == j else float('inf'))
+                  for i in range(site_count)]
+                 for j in range(site_count)]
         for river in self.rivers:
             self.fill_graph_with_river(graph, river)
-        self.dist = csgraph.floyd_warshall(graph, False, False, True)
+        floyd_warshall(graph)
+        self.dist = graph
 
     def calc(self, punter):
         self.pre_calc()
-        subgraph = np.zeros([len(self.map['sites'])] * 2, np.bool)
+        site_count = len(self.map['sites'])
+        subgraph = [[(0 if i == j else float('inf'))
+                     for i in range(site_count)]
+                    for j in range(site_count)]
         for river in self.rivers:
             if river.get('punter') == punter:
                 self.fill_graph_with_river(subgraph, river)
 
-        subdist = csgraph.floyd_warshall(subgraph, False, False, True)
+        floyd_warshall(subgraph)
         score = 0
         for mine in self.map['mines']:
             mine_index = self.site_to_index[mine]
             for i in range(len(self.map['sites'])):
-                if not np.isinf(subdist[mine_index, i]):
-                    score += int(self.dist[mine_index, i]) ** 2
+                if subgraph[mine_index][i] != float('inf'):
+                    score += int(self.dist[mine_index][i]) ** 2
         return score
