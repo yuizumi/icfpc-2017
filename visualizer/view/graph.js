@@ -12,11 +12,11 @@ const colors = {
         },
         {
             id: 1,
-            color: '#3CBAC8',
+            color: '#33a3c8',
         },
         {
             id: 2,
-            color: '#68ED63',
+            color: '#0ba72d',
         },
         {
             id: 3,
