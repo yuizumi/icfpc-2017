@@ -63,6 +63,11 @@ class Suzupy : public AI {
             UnionFind uf_trees(trees.get<vector<int>>());
             punterTrees_.push_back(uf_trees);
         }
+        for (const Json& punter_reachables_json : json["reachables"]) {
+            set<SiteId> punter_reachables;
+            punter_reachables.insert(punter_reachables_json.begin(), punter_reachables_json.end());
+            reachables_.push_back(punter_reachables);
+        }
     }
 
     Json SaveState() override {
@@ -75,7 +80,14 @@ class Suzupy : public AI {
         for (const River& river : rivers_) {
             json_rivers.push_back({{"source", river.source}, {"target", river.target}});
         }
-        return {{"punterTrees", json_punterTrees}, {"rivers", json_rivers}};
+        auto json_reachables = Json::array();
+        for (set<SiteId> punter_reachables : reachables_) {
+            auto punter_reachables_json = Json::array();
+            for (const SiteId siteId : punter_reachables)
+                punter_reachables_json.push_back(siteId);
+            json_reachables.push_back(punter_reachables_json);
+        }
+        return {{"punterTrees", json_punterTrees}, {"rivers", json_rivers}, {"reachables", json_reachables}};
     }
 
     void Setup() override {
@@ -84,6 +96,13 @@ class Suzupy : public AI {
             UnionFind uf_trees(map_->sites().size());
             // UnionFind uf_trees(map_->num_sites()); // ai.hpp でこちらに変更される予定
             punterTrees_.push_back(uf_trees);
+        }
+        for (int i = 0; i < num_punters_; i++) {
+            set<SiteId> punter_reachables;
+            for (const SiteId& mine : map_->mines()) {
+                punter_reachables.insert(mine);
+            }
+            reachables_.push_back(punter_reachables);
         }
     }
 
@@ -96,6 +115,8 @@ class Suzupy : public AI {
             if (m.action == kClaim) {
                 rivers_.erase(m.river);
                 punterTrees_[i].unionSet(m.river.source, m.river.target);
+                reachables_[i].insert(m.river.source);
+                reachables_[i].insert(m.river.target);
             }
         }
         for (const River& river : rivers_) {
@@ -117,6 +138,7 @@ class Suzupy : public AI {
     const Map* map_;
     vector<UnionFind> punterTrees_;
     set<River, CompareRiver> rivers_;
+    vector<set<SiteId>> reachables_;
 };
 
 }  // namespace
