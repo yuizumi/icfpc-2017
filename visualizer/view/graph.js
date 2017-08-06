@@ -3,75 +3,79 @@ const colors = {
     link: [
         {
             id: -1,
-            color: '#bfbfbf'
+            color: '#bfbfbf',
         },
         {
             id: 0,
-            color: '#3CBAC8',
+            color: '#F19181',
         },
         {
             id: 1,
-            color: '#68ED63',
+            color: '#3CBAC8',
         },
         {
             id: 2,
-            color: '#edea34',
+            color: '#68ED63',
         },
         {
             id: 3,
-            color: '#a544ed',
+            color: '#edea34',
         },
         {
             id: 4,
-            color: '#F19181',
+            color: '#a544ed',
         },
     ],
 };
 
 const svgWidth = 800;
 
-const drawScore = function (scores) {
+const drawLabels = function () {
     const height = 50;
     const scoreSelector = '#score-cell';
-    const svg = d3.select(scoreSelector)
-        .append("svg")
-        .attr({width: svgWidth, height: height})
-    const rect = svg.selectAll("rect")
+    // const svg = d3.select(scoreSelector)
+    //     .append("svg")
+    //     .attr({width: svgWidth, height: height})
+    const rect = d3.select(scoreSelector)
+        .selectAll("div")
         .data(colors.link)
         .enter()
-        .append("rect")
-        .attr("width", 80)
-        .attr("height", 40)
-        .attr("x", function (d) {
-            return 100 * (d.id + 1)
-        })
-        .attr("fill", function (d) {
-            return d.color;
-        });
-    
-    const label = svg.selectAll('text')
-        .data(colors.link)
-        .enter()
-        .append('text')
-        .attr({
-            "text-anchor": "middle",
-            "fill": "white"
-        })
-        .style({"font-size": 24})
-        .text(function (d) {
+        .append("div")
+        .style("background-color", function(d) {return d.color})
+        .style(
+            {
+                "display": "inline-block",
+                "padding": "2px 10px",
+                "margin": "2px 4px",
+                "font-size": "18px",
+                "width": "180px"
+            }
+        )
+        .html(function(d) {
             if (d.id < 0) {
                 return "empty"
             }
-            return "user" + d.id
+            return "user" + d.id + ":" 
+                + "<span id=" +　scoreSelectorId(d.id) + ">"
         })
-        .attr("x", function (d) {
-            return (100 * (d.id + 1)) + 40 
-        })
-        .attr("y", function (d) {
-            return 24;
-        })
-    
+        .selectAll('span')
+        .style("font-weight", "bold")
+        .text("0")
 };
+
+const drawScore = function (scores) {
+    for (let i = 0; i < scores.length; i ++) {
+        userId = scores[i]["punter"];
+        score = scores[i]["score"];
+        const _id = scoreSelectorId(userId);
+        d3.selectAll('#' + _id)
+            .text(score)
+    }
+};
+
+const scoreSelectorId = function(user) {
+    return "score-" + user;
+}
 
 const linksToSelectorId = function (selector, src, dst) {
     return selector.replace('#', '') + '-' + src + '-' + dst;

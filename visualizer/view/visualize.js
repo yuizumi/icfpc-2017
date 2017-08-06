@@ -37,8 +37,9 @@ const Visualizer = function (rootSelector) {
         for (let i = 0; i < data.nodes.length; i++) {
             this.NodeIndexDic[data.nodes[i].id] = i;
         }
-
         this.setMapData(data);
+        
+        drawLabels();
         createGraph(
             this.RootSelector,
             this.getMapData(),
