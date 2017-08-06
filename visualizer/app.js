@@ -72,7 +72,7 @@ Game.prototype.updateVis = function (data) {
   }
 };
 
-Game.prototype.roleBackVis = function () {
+Game.prototype.roleBackVis = function (data) {
   if('claim' in data){
     let tmp = data['claim'];
     this._vis.rollback(tmp['s'],tmp['t']);
