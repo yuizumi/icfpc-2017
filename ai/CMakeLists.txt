@@ -10,3 +10,6 @@ add_executable(greedy greedy.cpp)
 target_link_libraries(greedy driver)
 add_executable(forest forest.cpp)
 target_link_libraries(forest driver)
+add_executable(suzupy suzupy.cpp)
+target_link_libraries(suzupy driver)
+
