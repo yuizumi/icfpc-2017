@@ -33,7 +33,6 @@ const Visualizer = function (rootSelector) {
          lambdas: [1 ...]
          }
          */
-
         this.NodeIndexDic = {};
         for (let i = 0; i < data.nodes.length; i++) {
             this.NodeIndexDic[data.nodes[i].id] = i;
@@ -67,27 +66,27 @@ const VisualizeTest = function () {
         nodes: [
             {
                 id: 0,
-                x: 20,
-                y: 50
+                x: 0,
+                y: 0
             },
             {
                 id: 1,
-                x: 50,
-                y: 50
+                x: 1,
+                y: 2
             },
             {
                 id: 2,
-                x: 50,
-                y: 100
+                x: 2,
+                y: 1
             },
             {
                 id: 5,
-                x: 100,
-                y: 100
+                x: 2,
+                y: 2
             }
         ],
         edges: [
-            // [0, 5],
+            [0, 5],
             [0, 1],
             [0, 2]
         ],

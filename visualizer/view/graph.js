@@ -45,18 +45,41 @@ const updateEdge = function (rootSelector, srcId, targetId, user) {
 };
 
 const createGraph = function (rootSelector, data, nodeIndexDic) {
-    const width = 500;
-    const height = 500;
+    const width = 800;
+    const height = 800;
     const node_radius = 10;
 
     d3.select(rootSelector).html('');
 
+    console.log(nodeIndexDic);
+    
+    x_min = 10000000;
+    x_max = 0;
+    y_min = 10000000;
+    y_max = 0;
+    for (let i = 0; i < data.nodes.length; i++) {
+        x_min = Math.min(data.nodes[i].x, x_min);
+        y_min = Math.min(data.nodes[i].y, y_min);
+        x_max = Math.max(data.nodes[i].x, x_max);
+        y_max = Math.max(data.nodes[i].y, y_max);
+    }
+    console.log(x_min, y_min);
+    
+    x_1 = (width - 20) / (x_max - x_min);
+    x_center = (x_max - x_min) / 2;
+    
+    y_1 = (height - 20) / (y_max - y_min);
+    y_center = (y_max - y_min) / 2;
+    
+    console.log(x_1, x_center, y_1, y_center);
+            
+    
     const nodes = _.map(data.nodes, function (node, i) {
         return {
             id: node.id,
             index: nodeIndexDic[node.id],
-            x: node.x,
-            y: node.y,
+            x: x_center + node.x * x_1,
+            y: y_center + node.y * y_1,
             isLambda: data.lambdas.indexOf(node.id) > -1,
         }
     });
