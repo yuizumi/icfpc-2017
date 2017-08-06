@@ -30,8 +30,7 @@ const colors = {
 };
 
 const drawLabels = function () {
-    
-    
+    d3.select(scoreSelector).html('');
     const rect = d3.select(scoreSelector)
         .selectAll("div")
         .data(colors.link)
@@ -71,7 +70,7 @@ const drawScore = function (scores) {
 
 const scoreSelectorId = function(user) {
     return "score-" + user;
-}
+};
 
 const linksToSelectorId = function (selector, src, dst) {
     return selector.replace('#', '') + '-' + src + '-' + dst;
@@ -89,13 +88,14 @@ const updateEdge = function (rootSelector, srcId, targetId, user) {
         });
 };
 
+
 const createGraph = function (rootSelector, data, nodeIndexDic) {
     const width = 800;
     const height = 800;
     const nodeRadius = 12;
     const svgMargin = 24;
+
     d3.select(rootSelector).html('');
-    d3.select(rootSelector).html(scoreSelector);
 
     let xMin = INF;
     let xMax = -INF;

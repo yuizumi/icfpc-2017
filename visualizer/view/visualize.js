@@ -38,13 +38,15 @@ const Visualizer = function (rootSelector) {
             this.NodeIndexDic[data.nodes[i].id] = i;
         }
         this.setMapData(data);
-        
+
         drawLabels();
         createGraph(
             this.RootSelector,
             this.getMapData(),
             this.NodeIndexDic
         );
+        
+        
     };
 
 
