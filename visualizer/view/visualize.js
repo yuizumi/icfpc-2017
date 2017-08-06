@@ -21,7 +21,14 @@ const Visualizer = function (rootSelector) {
     this.createMap = function (data) {
         /*
          data: {
-         nodes: [1, 2, 3, 5 ...],
+         nodes: [
+            {
+                id: 1,
+                x: 1,
+                y: 1
+            },
+            
+         ]
          edged: [[1, 2], [1, 5], [2, 3] ...],
          lambdas: [1 ...]
          }
@@ -67,6 +74,7 @@ const VisualizeTest = function () {
     });
 
     vis.update(0, 1, 1);
+    return vis;
 };
 
-// VisualizeTest();
+VisualizeTest();
