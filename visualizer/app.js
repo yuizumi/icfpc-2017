@@ -89,7 +89,7 @@ Game.prototype.finishGame = function () {
     }
   ).done((function(d) {return function(response,status,jqXHR){
     jsonlog.val(jqXHR['responseText']+' The Game is Over!');
-    d._vis.updateScore(jqXHR['responseText']);
+    d._vis.updateScore(response);
   };})(this));
 }
 
