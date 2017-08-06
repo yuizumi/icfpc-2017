@@ -1,77 +1,122 @@
-function update_map(vcell,response){
-  if('map' in response){
-    console.log('map');
-    let nodes = [];
-    let edges = [];
-    let lambdas = [];
-    response['map']['sites'].forEach(function(node){
-      nodes.push(node['id']);
-    });
-    response['map']['rivers'].forEach(function(river){
-      let edge = []
-      edge.push(river['source']);
-      edge.push(river['target']);
-      edges.push(edge);
-    });
-    response['map']['mines'].forEach(function(mine){
-      lambdas.push(mine)
-    });
-    //console.log(nodes);
-    //console.log(edges);
-    //console.log(lambdas);
-    data = {"nodes":nodes,"edges":edges,"lambdas":lambdas};
-    Visualizer.createMap(vcell,data)
+var Operation = function(){}
+
+Operation.prototype.getMapData = function (response) {
+  let nodes = [];
+  let edges = [];
+  let lambdas = [];
+  response['sites'].forEach(function(node){
+    nodes.push(node['id']);
+  });
+  let comp = function(a,b){
+    return a-b;
   }
-  if('claim' in response){
-    let punter = response['claim']['punter'];
-    let s = response['claim']['source'];
-    let t = response['claim']['target'];
-    Visualizer.update(s,t);
-    //console.log('claim')
+  nodes.sort(comp);
+  response['rivers'].forEach(function(river){
+    let s = river['source'];
+    let t = river['target'];
+    if(s>t){
+      let tmp = s;
+      s = t;
+      t = tmp;
+    }
+    edges.push([s,t]);
+  });
+  response['mines'].forEach(function(mine){
+    lambdas.push(mine)
+  });
+  data = {"nodes":nodes,"edges":edges,"lambdas":lambdas};
+  return {"map":data};
+};
+
+Operation.prototype.getMoveData = function(response){
+  let punter = response['punter'];
+  let s = response['source'];
+  let t = response['target'];
+  if(s>t){
+    let tmp = s;
+    s = t;
+    t = tmp;
   }
-  if('pass' in response){
-    console.log('pass');
-  }
-  if('stop' in response){
-    //console.log('stop');
-    response['stop']['scores'].forEach(function(score){
-      console.log(score);
-    });
-  }
-  return "end"
+  return {"claim":{"p":punter,"s":s,"t":t}};
 }
 
-function updateGame(vcell,gameState){
-  console.log(gameState);
-  let url = 'log/'+String(gameState.gamenumber)+'/'+String(gameState.turn);
-  //let vcell = $('#main-visualize-cell');
-  let jsonlog = $('#jsonlog')
+var Game = function(gameId,selector){
+  this._gameId = gameId;
+  this._turn = 0;
+  this._vis = new Visualizer(selector);
+
+  this.getGameId = function(){
+    return this._gameId;
+  }
+  this.getTurn = function(){
+    return this._turn;
+  }
+  this.updateTurn = function(){
+    this._turn++;
+    return this._turn;
+  }
+}
+
+Game.prototype.updateVis = function (data) {
+  if('map' in data){
+    this._vis.createMap(data['map']);
+  }else if('claim' in data){
+    let tmp = data['claim'];
+    this._vis.update(tmp['s'],tmp['t'],tmp['p']);
+  }
+};
+
+Game.prototype.updateGame = function () {
+  let url = 'log/'+String(this.getGameId())+'/'+String(this.getTurn())+'.json';
+  let jsonlog = $('#jsonlog');
   $.ajax({
     type:"GET",
     dataType:"json",
     url:url
     }
-  ).done(function(response,status,jqXHR){
+  ).done((function(d) {return function(response,status,jqXHR){
     let data = {};
-    jsonlog.val(jqXHR['responseText'])
-    data = update_map(vcell,response)
-    gameState.turn++;
-  }).fail(function(response,status,error){
-    jsonlog.val(error)
+    let ope = new Operation();
+    jsonlog.val(jqXHR['responseText']);
+    data = ope.getMoveData(response['claim']);
+    d.updateTurn();
+    d.updateVis(data);
+  };})(this)).fail(function(response,status,error){
+    jsonlog.val(error);
     alert("The game is over!! or some error has occur.")
+  });
+};
+
+Game.prototype.initMap = function (){
+  let url = 'log/'+String(this.getGameId())+'/map.json';
+  let jsonlog = $('#jsonlog');
+  $.ajax({
+    type:"GET",
+    dataType:"json",
+    url:url
+    }
+  ).done((function(d) {return function(response,status,jqXHR){
+    let data = {};
+    let ope = new Operation();
+    jsonlog.val(jqXHR['responseText']);
+    data = ope.getMapData(response);
+    d.updateVis(data);
+  };})(this)).fail(function(response,status,error){
+    jsonlog.val(error);
+    alert("Cannot download map data!")
   });
 }
 
-var game = {}
-var timer = {}
+var game = {};
+var timer = {};
 
 $('#play').on('click',function(){
-  game = {gamenumber:Number($('#gamenumber').val()),turn:0}
-  updateGame('#main-visualize-cell',game);
+  game = new Game(Number($('#gamenumber').val()),"#main-visualize-cell");
+  game.initMap();
 });
 
 $('#next').on('click',function(){
-  updateGame('#main-visualize-cell',game);
+  game.updateGame();
 });
 
 $('#autoplay').on('click',function(){
