@@ -1,8 +1,4 @@
-import json
 import numpy as np
-import sys
-from punter_client import PunterClient
-from process_punter_client import ProcessPunterClient
 from scipy.sparse import csgraph
 
 class PunterState:
@@ -14,7 +10,13 @@ class PunterState:
         self.moves = []
         self.last_move = None
 
-def emulate(punter_clients, map_dict):
+def edges_equal(a, b):
+    return ((a['source'] == b['source'] and a['target'] == b['target'])
+        or (a['source'] == b['target'] and a['target'] == b['source']))
+
+def emulate(punter_clients, map_dict, logger):
+    logger.start()
+    logger.info('map', map_dict)
     punters = []
 
     # setup
@@ -30,10 +32,12 @@ def emulate(punter_clients, map_dict):
         # setup
         ready = punter.client.setup({
             'punter': punter.id,
-            'punters': len(punters),
+            'punters': len(punter_clients),
             'map': map_dict })
         if 'state' in ready:
             punter.state = ready['state']
+        logger.show('punter '+ str(punter.id), punter.name)
+    logger.info('punters', [{'punter': p.id, 'name': p.name} for p in punters])
 
     # game
     punter_index = 0
@@ -47,24 +51,28 @@ def emulate(punter_clients, map_dict):
             'move': {'moves': [p.last_move for p in punters]},
             'state': punter.state})
         # save state
-        if 'state' in move:
-            punter.state = move['state']
+        punter.state = move.get('state')
         # validate and save move
         if 'claim' in move:
             claim = move['claim']
             assert claim['punter'] == punter.id
             rivers = [r for r in map_dict['rivers']
-                      if r['source'] == claim['source']
-                      and r['target'] == claim['target']
-                      and 'punter' not in r]
+                      if edges_equal(r, claim) and 'punter' not in r]
             if len(rivers) == 1:
                 rivers[0]['punter'] = punter.id
             else:
-                move = {'pass': {'punter': punter.id}}
-        else:
-            move = {'pass': {'punter': punter.id}}
+                logger.warn(turn, move)
+                move = None
+        elif 'pass' not in move:
+            logger.warn(turn, move)
+            move = None
+        # error json is regarded as pass
+        if move is None:
+            logger.show('suspicious move', {'turn': turn, 'name': punter.name})
+            move = {'pass': {'punter': punter.id}, 'state': punter.state}
+        logger.turn(turn, move)
         if 'state' in move: del move['state']
-        print(move)
+        logger.show(turn, move)
         punter.moves.append(move)
         all_moves.append(move)
         punter.last_move = move
@@ -110,13 +118,29 @@ def emulate(punter_clients, map_dict):
             'state': punter.state})
 
     # log
-    print(map_dict)
-    print(scores)
+    logger.info('moves_summary', all_moves)
+    logger.info('map_result', map_dict)
+    logger.info('scores', scores)
+    logger.show('scores', scores)
+    logger.end()
 
-if __name__ == '__main__':
-    with open(sys.argv[1]) as maps_json:
-        map_dict = json.load(maps_json)
+def parse_map_arg(at):
+    import json
+    import sys
+    with open(sys.argv[at]) as maps_json:
+        return json.load(maps_json)
+
+def parse_punter_args(at):
+    import sys
+    from process_punter_client import ProcessPunterClient
     clients = []
     for command in sys.argv[2:]:
         clients.append(ProcessPunterClient(command))
-    emulate(clients, map_dict)
+    return clients
+
+if __name__ == '__main__':
+    import log_to_dir
+    emulate(
+        parse_punter_args(at=2),
+        parse_map_arg(at=1),
+        log_to_dir.default_logger())
