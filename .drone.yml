@@ -2,4 +2,6 @@ pipeline:
   test:
     image: debian:7
     commands:
-      - echo hello
+      - cd ai
+      - cmake .
+      - make
