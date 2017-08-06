@@ -3,6 +3,6 @@ pipeline:
     image: suzupy/icfpc-love-and-lies
     pull: true
     commands:
-      - cd ai
-      - cmake .
+      - cd build
+      - cmake ..
       - make
