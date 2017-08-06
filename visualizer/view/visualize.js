@@ -38,13 +38,15 @@ const Visualizer = function (rootSelector) {
             this.NodeIndexDic[data.nodes[i].id] = i;
         }
         this.setMapData(data);
-        
+
         drawLabels();
         createGraph(
             this.RootSelector,
             this.getMapData(),
             this.NodeIndexDic
         );
+        
+        
     };
 
 
@@ -105,7 +107,7 @@ const VisualizeTest = function () {
 
     scores = [
         {"punter": 0, "score": 27},
-        {"punter": 1, "score": 12}];
+        {"punter": 1, "score": 1200000}];
     vis.update(0, 1, 1);
     vis.update(0, 2, 2);
     vis.rollback(0, 1);
