@@ -44,15 +44,16 @@ void Write(const Json& json) {
     WriteString(json_str);
 }
 
-std::vector<Move> ParseMove(const Json& json, const Map& map) {
-    std::vector<Move> moves(json["moves"].size());
-
+void ParseMove(const Json& json, const Map& map,
+               std::vector<Move>* moves, AI* ai) {
     for (const auto& e : json["moves"]) {
         const auto claim = e.find("claim");
         if (claim != e.end()) {
             const SiteId source = map.ToSiteId((*claim)["source"]);
             const SiteId target = map.ToSiteId((*claim)["target"]);
-            moves[(*claim)["punter"]] = {Move::Action::kClaim, {source, target}};
+            const int punter = (*claim)["punter"];
+            ai->HandleClaim(punter, {source, target});
+            (*moves)[punter] = {Move::Action::kClaim, {source, target}};
             continue;
         }
         const auto splurge = e.find("splurge");
@@ -60,14 +61,16 @@ std::vector<Move> ParseMove(const Json& json, const Map& map) {
             std::vector<SiteId> route;
             for (Map::JsonSiteId json_id : (*splurge)["route"])
                 route.push_back(map.ToSiteId(json_id));
-            moves[(*splurge)["punter"]] = {Move::Action::kSplurge, {}};
-            moves[(*splurge)["punter"]].route = std::move(route);
+            const int punter = (*splurge)["punter"];
+            for (size_t i = 1; i < route.size(); i++) {
+                ai->HandleClaim(punter, {route[i - 1], route[i]});
+            }
+            (*moves)[punter] = {Move::Action::kSplurge, {}};
+            (*moves)[punter].route = std::move(route);
             continue;
         }
-        moves[e["pass"]["punter"]] = {Move::Action::kPass, {}};
+        (*moves)[e["pass"]["punter"]] = {Move::Action::kPass, {}};
     }
-
-    return moves;
 }
 
 void DoSetup(AI* ai, Json&& json) {
@@ -82,10 +85,13 @@ void DoSetup(AI* ai, Json&& json) {
 void DoGameplay(AI* ai, Json&& json) {
     Json state = json["state"];
     const int id = state["punter"];
+    const int num_punters = state["punters"];
     const Map map = Map::Parse(state["map"]);
-    ai->Init(id, state["punters"], &map);
+    ai->Init(id, num_punters, &map);
     ai->LoadState(std::move(state["custom"]));
-    Move next_move = ai->Gameplay(ParseMove(json["move"], map));
+    std::vector<Move> moves(num_punters);
+    ParseMove(json["move"], map, &moves, ai);
+    Move next_move = ai->Gameplay(moves);
     state["custom"] = ai->SaveState();
 
     switch (next_move.action) {

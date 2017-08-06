@@ -58,8 +58,9 @@ struct Move {
 // ゲームの途中（ターンごと）
 //   1. Init
 //   2. LoadState
-//   3. Gameplay
-//   4. SaveState
+//   3. HandleClaim（必要な回数だけ）
+//   4. Gameplay
+//   5. SaveState
 class AI {
 public:
     virtual std::string name() const { return typeid(*this).name(); }
@@ -77,6 +78,10 @@ public:
 
     // ゲームが始まる前の準備処理
     virtual void Setup() = 0;
+
+    // {"punter": punter} が river を claim した（ことを処理する）
+    // splurge、timeout などにも対応している
+    virtual void HandleClaim(int punter, const River& river) {}
 
     // メインのロジックをここに書く
     // moves[i] == {"punter": i} の直前のターンにおける手
