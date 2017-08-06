@@ -1,8 +1,9 @@
+const INF = 10000000.0;
 const colors = {
     link: [
         {
             id: -1,
-            color: '#cccccc'
+            color: '#bfbfbf'
         },
         {
             id: 0,
@@ -27,19 +28,63 @@ const colors = {
     ],
 };
 
+const svgWidth = 800;
 
+const drawScore = function (scores) {
+    const height = 50;
+    const scoreSelector = '#score-cell';
+    const svg = d3.select(scoreSelector)
+        .append("svg")
+        .attr({width: svgWidth, height: height})
+    const rect = svg.selectAll("rect")
+        .data(colors.link)
+        .enter()
+        .append("rect")
+        .attr("width", 80)
+        .attr("height", 40)
+        .attr("x", function (d) {
+            return 100 * (d.id + 1)
+        })
+        .attr("fill", function (d) {
+            return d.color;
+        });
+    
+    const label = svg.selectAll('text')
+        .data(colors.link)
+        .enter()
+        .append('text')
+        .attr({
+            "text-anchor": "middle",
+            "fill": "white"
+        })
+        .style({"font-size": 24})
+        .text(function (d) {
+            if (d.id < 0) {
+                return "empty"
+            }
+            return "user" + d.id
+        })
+        .attr("x", function (d) {
+            return (100 * (d.id + 1)) + 40 
+        })
+        .attr("y", function (d) {
+            return 24;
+        })
+    
+};
 
 const linksToSelectorId = function (selector, src, dst) {
     return selector.replace('#', '') + '-' + src + '-' + dst;
 };
 
 const updateEdge = function (rootSelector, srcId, targetId, user) {
-    _id = linksToSelectorId(rootSelector, srcId, targetId)
+    const _id = linksToSelectorId(rootSelector, srcId, targetId)
 
+    const strokeWidth = user < 0 ? 2 : 4;
     d3
         .selectAll('#' + _id)
         .style({
-            "stroke-width": 5,
+            "stroke-width": strokeWidth,
             "stroke": colors.link[user + 1].color,
         });
 };
@@ -47,44 +92,39 @@ const updateEdge = function (rootSelector, srcId, targetId, user) {
 const createGraph = function (rootSelector, data, nodeIndexDic) {
     const width = 800;
     const height = 800;
-    const node_radius = 10;
-
+    const nodeRadius = 12;
+    const svgMargin = 24;
     d3.select(rootSelector).html('');
 
-    console.log(nodeIndexDic);
-
-    let x_min = 10000000.0;
-    let x_max = -10000000.0;
-    let y_min = 10000000.0;
-    let y_max = -10000000.0;
+    let xMin = INF;
+    let xMax = -INF;
+    let yMin = INF;
+    let yMax = -INF;
     for (let i = 0; i < data.nodes.length; i++) {
-        x_min = Math.min(data.nodes[i].x, x_min);
-        y_min = Math.min(data.nodes[i].y, y_min);
-        x_max = Math.max(data.nodes[i].x, x_max);
-        y_max = Math.max(data.nodes[i].y, y_max);
+        xMin = Math.min(data.nodes[i].x, xMin);
+        yMin = Math.min(data.nodes[i].y, yMin);
+        xMax = Math.max(data.nodes[i].x, xMax);
+        yMax = Math.max(data.nodes[i].y, yMax);
     }
-    //console.log(x_max,y_max,x_min, y_min);
+    //console.log(xMax,yMax,xMin, yMin);
 
-    x_1 = (width - 20) / (x_max - x_min);
-    x_center = (x_max + x_min) / 2;
+    x_1 = (width - svgMargin) / (xMax - xMin);
+    x_center = (xMax + xMin) / 2;
 
-    y_1 = (height - 20) / (y_max - y_min);
-    y_center = (y_max + y_min) / 2;
+    y_1 = (height - svgMargin) / (yMax - yMin);
+    y_center = (yMax + yMin) / 2;
 
     //console.log(x_1, x_center, y_1, y_center);
-
-
+    // ノードデータをvisualize用に変換
     const nodes = _.map(data.nodes, function (node, i) {
         return {
             id: node.id,
             index: nodeIndexDic[node.id],
-            x: 400 - x_center * x_1 + node.x * x_1,
-            y: 400 - y_center * y_1 + node.y * y_1,
+            x: (width / 2) - x_center * x_1 + node.x * x_1,
+            y: (height / 2) - y_center * y_1 + node.y * y_1,
             isLambda: data.lambdas.indexOf(node.id) > -1,
         }
     });
-
-    //console.log(nodes);
 
     const edges = _.map(data.edges, function (edge, i) {
         return {
@@ -100,7 +140,6 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
         .attr({width: width, height: height});
 
     //リンク
-    console.log(JSON.stringify(edges));
     const link = svg.selectAll("line")
         .data(edges)
         .enter()
@@ -138,8 +177,8 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
         .enter()
         .append("circle")
         .attr({
-            r: node_radius,
-            opacity: 0.5
+            r: nodeRadius,
+            opacity: 0.8
         })
         .attr("fill", function (d) {
             return d.isLambda ? "red" : "gray";
@@ -153,25 +192,26 @@ const createGraph = function (rootSelector, data, nodeIndexDic) {
             }
         });
 
-    // });
-    // const sample = d3.select(rootSelector).append("svg")
-    //     .attr("class", "sample")
-    //     .attr({width: 100, height: height});
-    //
-    // sample
-    //     .selectAll('circle')
-    //     .data(colors.link)
-    //     .enter()
-    //     .append("circle")
-    //     .attr({
-    //         r: node_radius,
-    //         opacity: 0.5
-    //     })
-    //     .attr("fill", function (d) {
-    //         return 'gray';
-    //     })
-    //     .attr('cx', 50)
-    //     .attr('cy', 50)
-
+    const label = svg.selectAll('text')
+        .data(nodes)
+        .enter()
+        .append('text')
+        .attr({
+            "text-anchor": "middle",
+            "fill": "white"
+        })
+        .style({"font-size": 18, "font-weight": "bold"})
+        .text(function (d) {
+            return d.id;
+        })
+        .attr({
+            x: function (d) {
+                return d.x;
+            },
+            y: function (d) {
+                return d.y + 5;
+            }
+        });
     // force.start();
 };
+ 
