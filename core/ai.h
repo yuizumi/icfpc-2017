@@ -59,4 +59,8 @@ public:
     virtual Move Gameplay(const std::vector<Move>& moves) = 0;
 };
 
+// いちいち書くのが面倒くさいので。
+constexpr Move::Action kClaim = Move::Action::kClaim;
+constexpr Move::Action kPass = Move::Action::kPass;
+
 #endif  // AI_H_

@@ -8,9 +8,6 @@ using namespace std;
 
 namespace {
 
-constexpr auto kClaim = Move::Action::kClaim;
-constexpr auto kPass = Move::Action::kPass;
-
 class CompareRiver {
 public:
     bool operator()(const River& r1, const River& r2) const {
