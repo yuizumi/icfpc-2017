@@ -3,19 +3,11 @@
 
 #include "../core/ai.h"
 #include "../core/driver.h"
+#include "river_set.h"
 
 using namespace std;
 
 namespace {
-
-class CompareRiver {
-public:
-    bool operator()(const River& r1, const River& r2) const {
-        if (r1.source != r2.source) return r1.source < r2.source;
-        if (r1.target != r2.target) return r1.target < r2.target;
-        return false;
-    }
-};
 
 class UnionFind {
 public:
@@ -51,11 +43,7 @@ class Suzupy : public AI {
     }
 
     void LoadState(Json&& json) override {
-        for (const Json& river_json : json["rivers"]) {
-            const SiteId source = river_json["source"];
-            const SiteId target = river_json["target"];
-            rivers_.insert({source, target});
-        }
+        rivers_ = Deserialize(json["rivers"]);
         for (const Json& trees: json["punterTrees"]) {
             UnionFind uf_trees(trees.get<vector<int>>());
             punterTrees_.push_back(uf_trees);
@@ -73,10 +61,7 @@ class Suzupy : public AI {
             Json json_trees = trees.data;
             json_punterTrees.push_back(json_trees);
         }
-        Json json_rivers = Json::array();
-        for (const River& river : rivers_) {
-            json_rivers.push_back({{"source", river.source}, {"target", river.target}});
-        }
+        const Json json_rivers = Serialize(rivers_);
         auto json_reachables = Json::array();
         for (set<SiteId> punter_reachables : reachables_) {
             auto punter_reachables_json = Json::array();
@@ -156,7 +141,7 @@ class Suzupy : public AI {
     int num_punters_;
     const Map* map_;
     vector<UnionFind> punterTrees_;
-    set<River, CompareRiver> rivers_;
+    RiverSet rivers_;
     vector<set<SiteId>> reachables_;
 };
 
