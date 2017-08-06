@@ -5,10 +5,10 @@ Operation.prototype.getMapData = function (response) {
   let edges = [];
   let lambdas = [];
   response['sites'].forEach(function(node){
-    nodes.push(node['id']);
+    nodes.push(node);
   });
   let comp = function(a,b){
-    return a-b;
+    return a['id']-b['id'];
   }
   nodes.sort(comp);
   response['rivers'].forEach(function(river){
