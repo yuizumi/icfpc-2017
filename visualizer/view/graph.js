@@ -28,14 +28,9 @@ const colors = {
     ],
 };
 
-const svgWidth = 800;
-
 const drawLabels = function () {
-    const height = 50;
+    
     const scoreSelector = '#score-cell';
-    // const svg = d3.select(scoreSelector)
-    //     .append("svg")
-    //     .attr({width: svgWidth, height: height})
     const rect = d3.select(scoreSelector)
         .selectAll("div")
         .data(colors.link)
