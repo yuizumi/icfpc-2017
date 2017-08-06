@@ -18,7 +18,7 @@ class Suzupy : public AI {
     }
 
     void LoadState(Json&& json) override {
-        rivers_ = DeserializeRiverSet(json["rivers"]);
+        rivers_ = json["rivers"].get<RiverSet>();
         punterTrees_ = json["punterTrees"].get<decltype(punterTrees_)>();
         for (const Json& punter_reachables_json : json["reachables"]) {
             set<SiteId> punter_reachables;
@@ -28,7 +28,6 @@ class Suzupy : public AI {
     }
 
     Json SaveState() override {
-        const Json json_rivers = SerializeRiverSet(rivers_);
         auto json_reachables = Json::array();
         for (set<SiteId> punter_reachables : reachables_) {
             auto punter_reachables_json = Json::array();
@@ -36,7 +35,7 @@ class Suzupy : public AI {
                 punter_reachables_json.push_back(siteId);
             json_reachables.push_back(punter_reachables_json);
         }
-        return {{"punterTrees", punterTrees_}, {"rivers", json_rivers}, {"reachables", json_reachables}};
+        return {{"punterTrees", punterTrees_}, {"rivers", rivers_}, {"reachables", json_reachables}};
     }
 
     void Setup() override {

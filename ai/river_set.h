@@ -18,7 +18,9 @@ public:
 
 using RiverSet = std::set<River, CompareRiver>;
 
-Json SerializeRiverSet(const RiverSet& river_set);
-RiverSet DeserializeRiverSet(const Json& json);
+void from_json(const Json& json, River& river);
+void to_json(Json& json, const River& river);
+void from_json(const Json& json, RiverSet& river_set);
+void to_json(Json& json, const RiverSet& river_set);
 
 #endif  // RIVER_SER_H_
