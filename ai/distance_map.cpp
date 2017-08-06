@@ -5,7 +5,9 @@
 
 using namespace std;
 
-DistanceMap::DistanceMap(const Map& map) {
+void DistanceMap::Init(const Map& map) {
+    dist_.resize(map.num_sites());
+
     vector<vector<SiteId>> adj_list(map.num_sites());
     for (const River& r : map.rivers()) {
         adj_list[r.source].push_back(r.target);
@@ -29,6 +31,7 @@ DistanceMap::DistanceMap(const Map& map) {
 }
 
 void from_json(const Json& json, DistanceMap& value) {
+    value.dist_.resize(json.size());
     for (size_t i = 0; i < json.size(); i++) {
         for (const Json& e : json[i])
             value.dist_[i][e[0]] = e[1];
@@ -37,7 +40,7 @@ void from_json(const Json& json, DistanceMap& value) {
 
 void to_json(Json& json, const DistanceMap& value) {
     json = Json::array();
-    for (size_t i = 0; i < json.size(); i++) {
+    for (size_t i = 0; i < value.dist_.size(); i++) {
         json.push_back(Json::array());
         for (const auto& e : value.dist_[i]) {
             json[i].push_back(Json::array({e.first, e.second}));

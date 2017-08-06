@@ -2,6 +2,7 @@
 #ifndef DISTANCE_MAP_H_
 #define DISTANCE_MAP_H_
 
+#include <iostream>  // FIXME
 #include <unordered_map>
 #include <vector>
 
@@ -12,8 +13,9 @@ constexpr int kUnreachable = 0;
 
 class DistanceMap {
 public:
-    explicit DistanceMap(const Map& map);
-    DistanceMap() = default;  // For Json::get<>().
+    DistanceMap() = default;
+
+    void Init(const Map& map);
 
     int Get(SiteId site, SiteId mine) const {
         const auto iter = dist_[site].find(mine);

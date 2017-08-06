@@ -19,7 +19,7 @@ public:
     // 真のときは |older| がλ鉱脈側、|newer| が反対側の頂点
     bool Test(const River& river, SiteId* older, SiteId* newer) const;
 
-    void HandleClaim(const River& river);
+    void Claim(const River& river);
 
 private:
     friend void from_json(const Json& json, ReachableSet& value);

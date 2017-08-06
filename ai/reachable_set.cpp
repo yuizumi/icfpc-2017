@@ -18,7 +18,7 @@ bool ReachableSet::Test(const River& river, SiteId* older, SiteId* newer) const 
     return false;
 }
 
-void ReachableSet::HandleClaim(const River& river) {
+void ReachableSet::Claim(const River& river) {
     reachables_.insert(river.source);
     reachables_.insert(river.target);
 }
