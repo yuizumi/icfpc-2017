@@ -8,16 +8,17 @@
 
 class UnionFind {
 public:
-    std::vector<int> data;
-    UnionFind(int size);
-    UnionFind(std::vector<int> v);
-    UnionFind(Json v);
-    bool unionSet(int x, int y);
-    bool findSet(int x, int y);
+    explicit UnionFind(int size);
+    bool UnionSet(int x, int y);
+    bool FindSet(int x, int y);
     int root(int x);
     int size(int x);
-    Json serialize() const;
-    static UnionFind deserialize(const Json& json);
+    Json Serialize() const;
+    static UnionFind Deserialize(const Json& json);
+
+private:
+    explicit UnionFind(std::vector<int> data);
+    std::vector<int> data_;
 };
 
 #endif  // UNION_FIND_H_

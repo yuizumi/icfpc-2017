@@ -20,7 +20,7 @@ class Suzupy : public AI {
     void LoadState(Json&& json) override {
         rivers_ = DeserializeRiverSet(json["rivers"]);
         for (const Json& trees: json["punterTrees"]) {
-            punterTrees_.push_back(UnionFind::deserialize(trees));
+            punterTrees_.push_back(UnionFind::Deserialize(trees));
         }
         for (const Json& punter_reachables_json : json["reachables"]) {
             set<SiteId> punter_reachables;
@@ -31,8 +31,8 @@ class Suzupy : public AI {
 
     Json SaveState() override {
         Json json_punterTrees = Json::array();
-        for (const UnionFind trees : punterTrees_) {
-            json_punterTrees.push_back(trees.serialize());
+        for (const UnionFind& trees : punterTrees_) {
+            json_punterTrees.push_back(trees.Serialize());
         }
         const Json json_rivers = SerializeRiverSet(rivers_);
         auto json_reachables = Json::array();
@@ -67,7 +67,7 @@ class Suzupy : public AI {
             auto m = moves[i];
             if (m.action == kClaim) {
                 rivers_.erase(m.river);
-                punterTrees_[i].unionSet(m.river.source, m.river.target);
+                punterTrees_[i].UnionSet(m.river.source, m.river.target);
                 reachables_[i].insert(m.river.source);
                 reachables_[i].insert(m.river.target);
             }
@@ -84,7 +84,7 @@ class Suzupy : public AI {
             } else {
                 continue;
             }
-            if (reachables_[id_].count(new_) && !punterTrees_[id_].findSet(old_, new_))
+            if (reachables_[id_].count(new_) && !punterTrees_[id_].FindSet(old_, new_))
                 return {kClaim, river};
         }
         // 既にmineにつながっているところに隣接したriverでまだmineにつながっていないsiteを優先して取る
