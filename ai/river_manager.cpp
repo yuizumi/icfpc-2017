@@ -2,13 +2,21 @@
 
 RiverManager::RiverManager(const Map& map, bool option)
     : option_(option) {
-    for (const River& river : map.rivers()) map_[river] = kClaim;
+    for (const River& river : map.rivers())
+        map_[river] = -1;
 }
 
-void RiverManager::HandleClaim(const River& river) {
+Move::Action RiverManager::NextAction(int punter, const River& river) const {
+    const auto iter = map_.find(river);
+    if (iter == map_.end() || iter->second == punter)
+        return kPass;
+    return (iter->second < 0) ? kClaim : kOption;
+}
+
+void RiverManager::HandleClaim(int punter, const River& river) {
     auto iter = map_.find(river);
-    if (option_ && iter->second == kClaim) {
-        iter->second = kOption;
+    if (option_ && iter->second < 0) {
+        iter->second = punter;
     } else {
         map_.erase(iter);
     }

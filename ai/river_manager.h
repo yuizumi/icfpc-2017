@@ -1,3 +1,4 @@
+// -*- C++ -*-
 #ifndef RIVER_MANAGER_H_
 #define RIVER_MANAGER_H_
 
@@ -9,19 +10,19 @@
 
 class RiverManager {
 public:
-    using RiverMap = std::map<River, Move::Action, CompareRiver>;
+    // 値は内部状態なので AI では使わないこと
+    using RiverMap = std::map<River, int, CompareRiver>;
 
     explicit RiverManager(const Map& map, bool option);
     RiverManager() = default;  // For Json.
 
     const RiverMap& map() const { return map_; }
 
-    Move::Action Get(const River& river) const {
-        const auto iter = map_.find(river);
-        return (iter != map_.end()) ? iter->second : kPass;
-    }
+    // river に対して次にとれるアクションを返す
+    Move::Action NextAction(int punter, const River& river) const;
 
-    void HandleClaim(const River& river);  // claim or option
+    // claim or option
+    void HandleClaim(int punter, const River& river);
 
 private:
     friend void from_json(const Json& json, RiverManager& value);

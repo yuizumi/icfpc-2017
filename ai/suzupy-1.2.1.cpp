@@ -40,7 +40,7 @@ class Suzupy : public AI {
     }
 
     void HandleClaim(int punter, const River& river) override {
-        switch (rivers_.Get(river)) {
+        switch (rivers_.NextAction(punter, river)) {
             case kClaim:
                 punters_[punter].HandleClaim (river); break;
             case kOption:
@@ -48,7 +48,7 @@ class Suzupy : public AI {
             default:
                 assert(false);
         }
-        rivers_.HandleClaim(river);
+        rivers_.HandleClaim(punter, river);
     }
 
     Move Gameplay(const std::vector<Move>& moves) override {
@@ -56,15 +56,16 @@ class Suzupy : public AI {
         River max_river(-1, -1);
         for (const auto& entry : rivers_.map()) {
             // TODO(yuizumi): kOption に対応する
-            if (entry.second != kClaim) continue;
             const River& river = entry.first;
+            if (rivers_.NextAction(id_, river) != kClaim)
+                continue;
             const int score = Evaluate(river);
             if (score >= max_score) {  // ひねくれて後ろの辺を優先
                 max_score = score;
                 max_river = river;
             }
         }
-        return {rivers_.Get(max_river), max_river};
+        return {rivers_.NextAction(id_, max_river), max_river};
     }
     
     // UnionFind があるので微妙に const じゃない
