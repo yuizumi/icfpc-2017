@@ -107,6 +107,10 @@ class Suzupy : public AI {
             return punters_[id_].Size(source) + punters_[id_].Size(target) +
                 kRule2Score;
         }
+        // オプションを#3に使うのは勿体ない
+        if (rivers_.NextAction(id_, river) == kOption) {
+            return 0;
+        }
         // #3: λ鉱脈への経路を伸ばす辺があればとる（獲得点数を考慮）
         if (punters_[id_].IsExpandingRiver(river)) {
             const SiteId older =
