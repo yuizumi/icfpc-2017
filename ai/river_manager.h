@@ -15,6 +15,12 @@ public:
     RiverManager() = default;  // For Json.
 
     const RiverMap& map() const { return map_; }
+
+    Move::Action Get(const River& river) const {
+        const auto iter = map_.find(river);
+        return (iter != map_.end()) ? iter->second : kPass;
+    }
+
     void HandleClaim(const River& river);  // claim or option
 
 private:
