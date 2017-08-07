@@ -96,7 +96,8 @@ void DoGameplay(AI* ai, Json&& json) {
     const int id = state["punter"];
     const int num_punters = state["punters"];
     const Map map = Map::Parse(state["map"]);
-    ai->Init(id, num_punters, &map, state["settings"]);
+    const Json settings = state["settings"];
+    ai->Init(id, num_punters, &map, settings);
     ai->LoadState(std::move(state["custom"]));
     std::vector<Move> moves(num_punters);
     ParseMove(json["move"], map, &moves, ai);
@@ -111,10 +112,15 @@ void DoGameplay(AI* ai, Json&& json) {
         case kOption: {
             const auto source = map.ToJsonId(next_move.river.source);
             const auto target = map.ToJsonId(next_move.river.target);
-            const std::string key =
-                (next_move.action == kOption) ? "option" : "claim";
-            const Json value =
-                {{"punter", id}, {"source", source}, {"target", target}};
+            std::string key;
+            Json value;
+            if (HasSetting(settings, "splurges")) {
+                key = "splurge";
+                value = {{"punter", id}, {"route", {source, target}}};
+            } else {
+                key = (next_move.action == kOption) ? "option" : "claim";
+                value = {{"punter", id}, {"source", source}, {"target", target}};
+            }
             Write({{key, value}, {"state", state}});
             break;
         }
