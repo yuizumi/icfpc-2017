@@ -104,12 +104,10 @@ class Suzupy : public AI {
                 if (punters_[id_].FindSet(older, mine)) {
                     const int dist = distance_.Get(newer, mine);
                     score += dist * dist;
+                } else {
                     // 他のλ鉱脈に近い方が良い
-                    for (const SiteId other : map_->mines()) {
-                        if (other == mine || other == newer) continue;
-                        const int otherDist = distance_.Get(newer, other);
-                        score -= otherDist;
-                    }
+                    // TODO: 本当はλを含む木への距離
+                    score -= distance_.Get(newer, mine);
                 }
             }
             return score + kRule3Score;
