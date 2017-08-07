@@ -18,7 +18,7 @@ class Suzupy : public AI {
               const Json& settings) override {
         id_ = id;
         map_ = map;
-        option_ = HasSetting(settings, "option");
+        option_ = HasSetting(settings, "options");
         punters_.resize(num_punters);
     }
 
