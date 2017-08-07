@@ -13,6 +13,7 @@ def emulate(punter_clients, map_dict, logger):
     logger.start()
     logger.info('map', map_dict)
     punters = []
+    score = Score(map_dict, len(punters))
 
     # setup
     for client in punter_clients:
@@ -28,14 +29,14 @@ def emulate(punter_clients, map_dict, logger):
         ready = punter.client.setup({
             'punter': punter.id,
             'punters': len(punter_clients),
-            'map': map_dict })
+            'map': map_dict,
+            'settings': score.settings})
         if 'state' in ready:
             punter.state = ready['state']
         logger.show('punter '+ str(punter.id), punter.name)
     logger.info('punters', [{'punter': p.id, 'name': p.name} for p in punters])
 
     # game
-    score = Score(map_dict, len(punters))
     punter_index = 0
     all_moves = []
     for turn in range(len(map_dict['rivers'])):

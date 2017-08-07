@@ -17,7 +17,7 @@ class Score:
         self.passes = [0] * punters
         self.valid_moves = []
         self.pre_calced = False
-        self.settings = {'splurge'}
+        self.settings = ['splurges', 'options']
 
     def move_all(self, moves):
         for move in moves: self.move(move)
@@ -27,6 +27,18 @@ class Score:
                   if edges_equal(r, claim) and 'punter' not in r]
         if len(rivers) == 1:
             rivers[0]['punter'] = claim['punter']
+            return rivers[0]
+        else:
+            return None
+
+    def option(self, option):
+        rivers = [r for r in self.rivers
+                  if edges_equal(r, option)
+                  and 'punter' in r
+                  and r['punter'] != option['punter']
+                  and 'option' not in r]
+        if len(rivers) == 1:
+            rivers[0]['option'] = option['punter']
             return rivers[0]
         else:
             return None
@@ -42,13 +54,21 @@ class Score:
             return None # error
         self.passes[splurge['punter']] -= (len(claims) - 1)
         rivers = []
-        last_river = None
+        river = None
         for claim in claims:
-            river = self.claim(claim)
+            river = self.claim(claim) or self.option(claim)
             if river is None: break
+            rivers.append(river)
+
+        # sucsess
         if river is not None: return rivers
-        # if river is None, error occurred.
-        for river in rivers: del river['punter']
+
+        # rollback
+        for river in rivers:
+            if 'option' in river:
+                del river['option']
+            else:
+                del river['punter']
         return None # error
 
     def assert_punter(self, dic, punter_or_none):
@@ -70,10 +90,18 @@ class Score:
         elif 'pass' in move:
             self.assert_punter(move['pass'], punter)
 
-        elif 'splurge' in move:
+        elif 'splurges' in self.settings and 'splurge' in move:
             splurge = move['splurge']
             self.assert_punter(splurge, punter)
             if self.splurge(splurge) is None:
+                # error
+                if logger is not None: logger.warn(turn, move)
+                move = None
+
+        elif 'options' in self.settings and 'option' in move:
+            option = move['option']
+            self.assert_punter(option, punter)
+            if self.option(option) is None:
                 # error
                 if logger is not None: logger.warn(turn, move)
                 move = None
@@ -90,7 +118,7 @@ class Score:
             move = {'pass': {'punter': punter.id}, 'state': punter.state}
 
         # count pass
-        if 'splurge' in self.settings:
+        if 'splurges' in self.settings:
             assert move is not None
             if 'pass' in move:
                 self.passes[move['pass']['punter']] += 1
@@ -128,7 +156,7 @@ class Score:
                      for i in range(site_count)]
                     for j in range(site_count)]
         for river in self.rivers:
-            if river.get('punter') == punter:
+            if river.get('punter') == punter or river.get('option') == punter:
                 self.fill_graph_with_river(subgraph, river)
 
         floyd_warshall(subgraph)
