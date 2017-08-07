@@ -17,8 +17,8 @@ bool PunterInfo::IsConnectingRiver(const River& river) {
 
 // older は必ずλにつながっている
 bool PunterInfo::IsConnectingRiver(SiteId older, SiteId newer) {
-    // !FindSet(...) == older と newer が異なる連結成分にいる
-    return !FindSet(older, newer) &&   (IsReachable(newer) || Size(newer) >= 2);
+    // !FindSet(...) == (older と newer が異なる連結成分にいる)
+    return !FindSet(older, newer) && (IsReachable(newer) || Size(newer) >= 2);
 }
 
 void PunterInfo::HandleClaim(const River& river) {
