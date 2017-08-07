@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 add_library(distance_map distance_map.cpp)
 add_library(reachable_set reachable_set.cpp)
+add_library(river_manager river_manager.cpp)
+target_link_libraries(river_manager river_set)
 add_library(river_set river_set.cpp)
 add_library(union_find union_find.cpp)
 
@@ -17,6 +19,8 @@ add_executable(suzupy suzupy.cpp)
 target_link_libraries(suzupy driver river_set union_find)
 add_executable(suzupy-1.1 suzupy-1.1.cpp)
 target_link_libraries(suzupy-1.1 driver river_set union_find)
+add_executable(suzupy-1.1.1 suzupy-1.1.1.cpp)
+target_link_libraries(suzupy-1.1.1 driver river_manager union_find)
 add_executable(suzupy-1.2 suzupy-1.2.cpp)
 target_link_libraries(suzupy-1.2
     driver distance_map reachable_set river_set union_find)
