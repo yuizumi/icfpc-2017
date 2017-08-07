@@ -2,9 +2,9 @@
 #define RIVER_MANAGER_H_
 
 #include <map>
-#include <vector>
 
 #include "../core/ai.h"
+#include "../core/json.h"
 #include "river_set.h"
 
 class RiverManager {
