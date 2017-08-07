@@ -3,8 +3,8 @@
 
 #include "../core/ai.h"
 #include "../core/driver.h"
+#include "punter_info.h"
 #include "river_manager.h"
-#include "union_find.h"
 
 using namespace std;
 
@@ -13,41 +13,36 @@ namespace {
 class Suzupy : public AI {
     void Init(int id, int num_punters, const Map* map, const Json& settings) override {
         id_ = id;
-        num_punters_ = num_punters;
         map_ = map;
         option_ = settings.count("option") && settings["option"];
+        punters_.resize(num_punters);
     }
 
     void LoadState(Json&& json) override {
         rivers_ = json["rivers"].get<decltype(rivers_)>();
-        punterTrees_ = json["punterTrees"].get<decltype(punterTrees_)>();
-        reachables_ = json["reachables"].get<decltype(reachables_)>();
+        punters_ = json["punters"].get<decltype(punters_)>();
     }
 
     Json SaveState() override {
-        return {
-            {"rivers", rivers_},
-            {"punterTrees", punterTrees_},
-            {"reachables", reachables_},
-        };
+        return {{"rivers", rivers_}, {"punters", punters_}};
     }
 
     void Setup() override {
         rivers_ = RiverManager(*map_, option_);
-        for (int i = 0; i < num_punters_; i++) {
-            punterTrees_.emplace_back(map_->num_sites());
-        }
-        for (int i = 0; i < num_punters_; i++) {
-            reachables_.push_back(
-                set<int>(map_->mines().begin(), map_->mines().end()));
-        }
+        for (size_t i = 0; i < punters_.size(); i++)
+            punters_[i] = PunterInfo(*map_, option_);
     }
 
     void HandleClaim(int punter, const River& river) override {
+        switch (rivers_.Get(river)) {
+            case kClaim:
+                punters_[punter].HandleClaim (river); break;
+            case kOption:
+                punters_[punter].HandleOption(river); break;
+            default:
+                assert(false);
+        }
         rivers_.HandleClaim(river);
-        punterTrees_[punter].UnionSet(river.source, river.target);
-        reachables_[punter].insert(river.source);
-        reachables_[punter].insert(river.target);
     }
 
     Move Gameplay(const std::vector<Move>& moves) override {
@@ -57,22 +52,9 @@ class Suzupy : public AI {
                 continue;
             }
             const River& river = entry.first;
-            for (int i = 0; i < num_punters_; i++)
-                if (i != id_) {
-                    SiteId old_, new_;
-                    if (reachables_[i].count(river.source)) {
-                        old_ = river.source;
-                        new_ = river.target;
-                    } else if (reachables_[i].count(river.target)) {
-                        old_ = river.target;
-                        new_ = river.source;
-                    } else {
-                        continue;
-                    }
-                    if ((reachables_[i].count(new_) || punterTrees_[i].size(new_) >= 2)
-                        && !punterTrees_[i].FindSet(old_, new_))
-                        return {kClaim, river};
-                }
+            for (int i = 0; i < punters_.size(); i++)
+                if (i != id_ && punters_[i].IsConnectingRiver(river))
+                    return {kClaim, river};
         }
         // cycleを避けつつ他のmineと接続できるなら先につなぐ
         for (const auto& entry : rivers_.map()) {
@@ -80,17 +62,8 @@ class Suzupy : public AI {
                 continue;
             }
             const River& river = entry.first;
-            SiteId old_, new_;
-            if (reachables_[id_].count(river.source)) {
-                old_ = river.source;
-                new_ = river.target;
-            } else if (reachables_[id_].count(river.target)) {
-                old_ = river.target;
-                new_ = river.source;
-            } else {
-                continue;
-            }
-            if (reachables_[id_].count(new_) && !punterTrees_[id_].FindSet(old_, new_))
+            // 1.1 と微妙に違うけど実質的には同じはず
+            if (punters_[id_].IsConnectingRiver(river))
                 return {kClaim, river};
         }
         // 既にmineにつながっているところに隣接したriverでまだmineにつながっていないsiteを優先して取る
@@ -99,17 +72,7 @@ class Suzupy : public AI {
                 continue;
             }
             const River& river = entry.first;
-            SiteId old_, new_;
-            if (reachables_[id_].count(river.source)) {
-                old_ = river.source;
-                new_ = river.target;
-            } else if (reachables_[id_].count(river.target)) {
-                old_ = river.target;
-                new_ = river.source;
-            } else {
-                continue;
-            }
-            if (!reachables_[id_].count(new_))
+            if (punters_[id_].IsExpandingRiver(river))
                 return {kClaim, river};
         }
         for (const auto& entry : rivers_.map()) {
@@ -122,12 +85,10 @@ class Suzupy : public AI {
     }
 
     int id_;
-    int num_punters_;
     const Map* map_;
     bool option_;
-    vector<UnionFind> punterTrees_;
+    vector<PunterInfo> punters_;
     RiverManager rivers_;
-    vector<set<SiteId>> reachables_;
 };
 
 }  // namespace
