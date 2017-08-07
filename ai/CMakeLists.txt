@@ -35,5 +35,8 @@ target_link_libraries(suzupy-1.2.2
 add_executable(suzupy-1.3 suzupy-1.3.cpp)
 target_link_libraries(suzupy-1.3
     driver distance_map punter_info river_manager)
+add_executable(suzupy-1.3.1 suzupy-1.3.1.cpp)
+target_link_libraries(suzupy-1.3.1
+    driver distance_map punter_info river_manager)
 add_executable(splurger splurger.cpp)
 target_link_libraries(splurger driver reachable_set river_set union_find)

@@ -1,7 +1,7 @@
 #include "punter_info.h"
 
 PunterInfo::PunterInfo(const Map& map, bool option)
-    : num_options_(option),
+    : num_options_(option ? map.mines().size() : 0),
       forest_(map.num_sites()),
       reachables_(map.mines().begin(), map.mines().end()) {}
 
