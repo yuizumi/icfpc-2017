@@ -29,6 +29,9 @@ target_link_libraries(suzupy-1.2
 add_executable(suzupy-1.2.1 suzupy-1.2.1.cpp)
 target_link_libraries(suzupy-1.2.1
     driver distance_map punter_info river_manager)
+add_executable(suzupy-1.2.2 suzupy-1.2.2.cpp)
+target_link_libraries(suzupy-1.2.2
+    driver distance_map punter_info river_manager)
 add_executable(suzupy-1.3 suzupy-1.3.cpp)
 target_link_libraries(suzupy-1.3
     driver distance_map punter_info river_manager)
