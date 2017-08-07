@@ -1,13 +1,24 @@
+import queue
+
 def edges_equal(a, b):
     return ((a['source'] == b['source'] and a['target'] == b['target'])
         or (a['source'] == b['target'] and a['target'] == b['source']))
 
-def floyd_warshall(graph):
-    n = len(graph)
-    for k in range(n):
-        for i in range(n):
-            for j in range(n):
-                graph[i][j] = min(graph[i][j], graph[i][k] + graph[k][j])
+def calc_distance(graph, mines):
+    dist_rows = {}
+    for mine in mines:
+        dist_row = {mine: 0}
+        q = queue.Queue()
+        q.put((mine, 0))
+        while not q.empty():
+            site, dist = q.get()
+            for adj in graph[site]:
+                if adj in dist_row:
+                    continue
+                dist_row[adj] = dist + 1
+                q.put((adj, dist + 1))
+        dist_rows[mine] = dist_row
+    return dist_rows
 
 class Score:
     def __init__(self, map_dict, punters):
@@ -128,11 +139,14 @@ class Score:
 
         return move
 
-    def fill_graph_with_river(self, graph, river):
-        s = self.site_to_index[river['source']]
-        t = self.site_to_index[river['target']]
-        graph[s][t] = 1
-        graph[t][s] = 1
+    def generate_graph(self, rivers):
+        site_count = len(self.map['sites'])
+        graph = [[] for _ in range(site_count)]
+        for river in rivers:
+            s = self.site_to_index[river['source']]
+            t = self.site_to_index[river['target']]
+            graph[s].append(t); graph[t].append(s)
+        return graph
 
     def pre_calc(self):
         if self.pre_calced: return
@@ -144,29 +158,22 @@ class Score:
         for i in range(site_count):
             self.site_to_index[sites[i]['id']] = i
 
-        graph = [[(0 if i == j else float('inf'))
-                  for i in range(site_count)]
-                 for j in range(site_count)]
-        for river in self.rivers:
-            self.fill_graph_with_river(graph, river)
-        floyd_warshall(graph)
-        self.dist = graph
+        graph = self.generate_graph(self.rivers)
+        mines = (self.site_to_index[mine] for mine in self.map['mines'])
+        self.dist = calc_distance(graph, mines)
 
     def calc(self, punter):
         self.pre_calc()
         site_count = len(self.map['sites'])
-        subgraph = [[(0 if i == j else float('inf'))
-                     for i in range(site_count)]
-                    for j in range(site_count)]
-        for river in self.rivers:
-            if river.get('punter') == punter or river.get('option') == punter:
-                self.fill_graph_with_river(subgraph, river)
-
-        floyd_warshall(subgraph)
+        subgraph = self.generate_graph(
+            river for river in self.rivers
+            if river.get('punter') == punter or river.get('option') == punter)
+        mines = (self.site_to_index[mine] for mine in self.map['mines'])
+        subdist = calc_distance(subgraph, mines)
         score = 0
         for mine in self.map['mines']:
             mine_index = self.site_to_index[mine]
             for i in range(len(self.map['sites'])):
-                if subgraph[mine_index][i] != float('inf'):
+                if subdist[mine_index].get(i) is not None:
                     score += int(self.dist[mine_index][i]) ** 2
         return score
