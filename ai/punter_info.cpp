@@ -22,9 +22,10 @@ bool PunterInfo::IsConnectingRiver(SiteId older, SiteId newer) {
 }
 
 void PunterInfo::HandleClaim(const River& river) {
-    // TODO(yuizumi): おそらく一方が reachables_ のときだけ？
-    reachables_.insert(river.source);
-    reachables_.insert(river.target);
+    if (reachables_.count(river.target))
+        reachables_.insert(river.source);
+    if (reachables_.count(river.source))
+        reachables_.insert(river.target);
     forest_.UnionSet(river.source, river.target);
 }
 
