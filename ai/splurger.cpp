@@ -66,7 +66,7 @@ class Splurger : public AI {
                 dup = (route[i] == now && route[i + 1] == adjacent)
                     || (route[i] == adjacent && route[i + 1] == now);
                 if (dup) break;
-            } 
+            }
             if (dup) continue;
 
             // 更に繋げる
