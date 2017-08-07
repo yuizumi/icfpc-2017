@@ -37,9 +37,10 @@ class Score:
             {'source': x[0], 'target': x[1],
              'punter': splurge['punter']}
             for x in zip(route[:-1], route[1:])]
-        if self.passes[splurge['punter']] < len(claims):
+        if len(claims) < 1: return None
+        if self.passes[splurge['punter']] < (len(claims) - 1):
             return None # error
-        self.passes[splurge['punter']] -= len(claims)
+        self.passes[splurge['punter']] -= (len(claims) - 1)
         rivers = []
         last_river = None
         for claim in claims:
