@@ -46,11 +46,11 @@ private:
 };
 
 struct Move {
-    enum class Action { kPass, kClaim, kSplurge };
+    enum class Action { kPass, kClaim, kSplurge, kOption };
     using Route = std::vector<SiteId>;
 
     Action action;
-    River river;  // kClaim のときだけ
+    River river;  // kClaim, kOption のときだけ
     Route route;  // kSplurge のときだけ
 
     Move(Action action, River river) : action(action), river(river) {}
@@ -97,6 +97,11 @@ public:
     // {"punter": punter} が river を claim した（ことを処理する）
     // splurge、timeout などにも対応している
     virtual void HandleClaim(int punter, const River& river) {}
+
+    // {"punter": punter} が river を option した（ことを処理する）
+    virtual void HandleOption(int punter, const River& river) {
+        HandleClaim(punter, river);  // まあこれでだいたい動く？
+    }
 
     // メインのロジックをここに書く
     // moves[i] == {"punter": i} の直前のターンにおける手

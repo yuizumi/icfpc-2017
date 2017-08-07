@@ -69,6 +69,15 @@ void ParseMove(const Json& json, const Map& map,
             (*moves)[punter].route = std::move(route);
             continue;
         }
+        const auto option = e.find("option");
+        if (option != e.end()) {
+            const SiteId source = map.ToSiteId((*option)["source"]);
+            const SiteId target = map.ToSiteId((*option)["target"]);
+            const int punter = (*option)["punter"];
+            ai->HandleOption(punter, {source, target});
+            (*moves)[punter] = {Move::Action::kOption, {source, target}};
+            continue;
+        }
         (*moves)[e["pass"]["punter"]] = {Move::Action::kPass, {}};
     }
 }
@@ -101,8 +110,8 @@ void DoGameplay(AI* ai, Json&& json) {
         case Move::Action::kClaim: {
             const auto source = map.ToJsonId(next_move.river.source);
             const auto target = map.ToJsonId(next_move.river.target);
-            const Json claim = {
-                {"punter", id}, {"source", source}, {"target", target}};
+            const Json claim =
+                {{"punter", id}, {"source", source}, {"target", target}};
             Write({{"claim", claim}, {"state", state}});
             break;
         }
@@ -112,6 +121,14 @@ void DoGameplay(AI* ai, Json&& json) {
                 route.push_back(map.ToJsonId(site));
             const Json splurge = {{"punter", id}, {"route", route}};
             Write({{"splurge", splurge}, {"state", state}});
+            break;
+        }
+        case Move::Action::kOption: {
+            const auto source = map.ToJsonId(next_move.river.source);
+            const auto target = map.ToJsonId(next_move.river.target);
+            const Json option =
+                {{"punter", id}, {"source", source}, {"target", target}};
+            Write({{"option", option}, {"state", state}});
             break;
         }
     }
