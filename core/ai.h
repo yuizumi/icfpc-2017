@@ -94,14 +94,10 @@ public:
     // ゲームが始まる前の準備処理
     virtual void Setup() = 0;
 
-    // {"punter": punter} が river を claim した（ことを処理する）
+    // {"punter": punter} が river を取得したときの処理をする
+    // claim か option かは AI が判断する必要がある（splurge との都合）
     // splurge、timeout などにも対応している
     virtual void HandleClaim(int punter, const River& river) {}
-
-    // {"punter": punter} が river を option した（ことを処理する）
-    virtual void HandleOption(int punter, const River& river) {
-        HandleClaim(punter, river);  // まあこれでだいたい動く？
-    }
 
     // メインのロジックをここに書く
     // moves[i] == {"punter": i} の直前のターンにおける手
@@ -112,5 +108,6 @@ public:
 constexpr Move::Action kPass = Move::Action::kPass;
 constexpr Move::Action kClaim = Move::Action::kClaim;
 constexpr Move::Action kSplurge = Move::Action::kSplurge;
+constexpr Move::Action kOption = Move::Action::kOption;
 
 #endif  // AI_H_
