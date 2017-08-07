@@ -34,7 +34,7 @@ class Suzupy : public AI {
     }
 
     void HandleClaim(int punter, const River& river) override {
-        switch (rivers_.Get(river)) {
+        switch (rivers_.NextAction(punter, river)) {
             case kClaim:
                 punters_[punter].HandleClaim (river); break;
             case kOption:
@@ -42,43 +42,40 @@ class Suzupy : public AI {
             default:
                 assert(false);
         }
-        rivers_.HandleClaim(river);
+        rivers_.HandleClaim(punter, river);
     }
 
     Move Gameplay(const std::vector<Move>& moves) override {
         // 他のmineと接続しそうな人 or mineとつながっていない連結成分をつなごうとしている怪しい人がいたら妨害する
         for (const auto& entry : rivers_.map()) {
-            if (entry.second != kClaim) {
-                continue;
-            }
             const River& river = entry.first;
+            if (rivers_.NextAction(id_, river) != kClaim)
+                continue;
             for (int i = 0; i < punters_.size(); i++)
                 if (i != id_ && punters_[i].IsConnectingRiver(river))
                     return {kClaim, river};
         }
         // cycleを避けつつ他のmineと接続できるなら先につなぐ
         for (const auto& entry : rivers_.map()) {
-            if (entry.second != kClaim) {
-                continue;
-            }
             const River& river = entry.first;
+            if (rivers_.NextAction(id_, river) != kClaim)
+                continue;
             // 1.1 と微妙に違うけど実質的には同じはず
             if (punters_[id_].IsConnectingRiver(river))
                 return {kClaim, river};
         }
         // 既にmineにつながっているところに隣接したriverでまだmineにつながっていないsiteを優先して取る
         for (const auto& entry : rivers_.map()) {
-            if (entry.second != kClaim) {
-                continue;
-            }
             const River& river = entry.first;
+            if (rivers_.NextAction(id_, river) != kClaim)
+                continue;
             if (punters_[id_].IsExpandingRiver(river))
                 return {kClaim, river};
         }
         for (const auto& entry : rivers_.map()) {
-            if (entry.second != kClaim) {
+            const River& river = entry.first;
+            if (rivers_.NextAction(id_, river) != kClaim)
                 continue;
-            }
             return {kClaim, entry.first};
         }
         return {kPass, {}};
