@@ -17,7 +17,10 @@ class Score:
         self.passes = [0] * punters
         self.valid_moves = []
         self.pre_calced = False
-        self.settings = ['splurges', 'options']
+        self.settings = {'futures': False, 'splurges': True, 'options': True}
+
+    self support(self, name):
+        return settings[name]
 
     def move_all(self, moves):
         for move in moves: self.move(move)
@@ -90,7 +93,7 @@ class Score:
         elif 'pass' in move:
             self.assert_punter(move['pass'], punter)
 
-        elif 'splurges' in self.settings and 'splurge' in move:
+        elif self.support('splurges') and 'splurge' in move:
             splurge = move['splurge']
             self.assert_punter(splurge, punter)
             if self.splurge(splurge) is None:
@@ -98,7 +101,7 @@ class Score:
                 if logger is not None: logger.warn(turn, move)
                 move = None
 
-        elif 'options' in self.settings and 'option' in move:
+        elif self.support('options') and 'option' in move:
             option = move['option']
             self.assert_punter(option, punter)
             if self.option(option) is None:
@@ -118,7 +121,7 @@ class Score:
             move = {'pass': {'punter': punter.id}, 'state': punter.state}
 
         # count pass
-        if 'splurges' in self.settings:
+        if self.support('splurges'):
             assert move is not None
             if 'pass' in move:
                 self.passes[move['pass']['punter']] += 1
