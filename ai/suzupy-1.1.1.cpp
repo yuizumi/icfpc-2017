@@ -14,7 +14,7 @@ class Suzupy : public AI {
     void Init(int id, int num_punters, const Map* map, const Json& settings) override {
         id_ = id;
         map_ = map;
-        option_ = settings.count("option") && settings["option"];
+        option_ = HasSetting(settings, "option");
         punters_.resize(num_punters);
     }
 

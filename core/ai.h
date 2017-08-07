@@ -104,6 +104,10 @@ public:
     virtual Move Gameplay(const std::vector<Move>& moves) = 0;
 };
 
+inline bool HasSetting(const Json& json, const std::string& name) {
+    return json.count(name) > 0 && json[name];
+}
+
 // いちいち書くのが面倒くさいので。
 constexpr Move::Action kPass = Move::Action::kPass;
 constexpr Move::Action kClaim = Move::Action::kClaim;
