@@ -24,3 +24,5 @@ target_link_libraries(suzupy-1.1.1 driver river_manager union_find)
 add_executable(suzupy-1.2 suzupy-1.2.cpp)
 target_link_libraries(suzupy-1.2
     driver distance_map reachable_set river_set union_find)
+add_executable(splurger splurger.cpp)
+target_link_libraries(splurger driver reachable_set river_set union_find)

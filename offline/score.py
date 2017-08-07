@@ -14,32 +14,69 @@ class Score:
         self.map = map_dict
         self.rivers = map_dict['rivers'].copy()
         self.punters = punters
+        self.passes = [0] * punters
         self.valid_moves = []
         self.pre_calced = False
+        self.settings = {'splurge'}
 
     def move_all(self, moves):
         for move in moves: self.move(move)
 
+    def claim(self, claim):
+        rivers = [r for r in self.rivers
+                  if edges_equal(r, claim) and 'punter' not in r]
+        if len(rivers) == 1:
+            rivers[0]['punter'] = claim['punter']
+            return rivers[0]
+        else:
+            return None
+
+    def splurge(self, splurge):
+        route = splurge['route']
+        claims = [
+            {'source': x[0], 'target': x[1],
+             'punter': splurge['punter']}
+            for x in zip(route[:-1], route[1:])]
+        if len(claims) < 1: return None
+        if self.passes[splurge['punter']] < (len(claims) - 1):
+            return None # error
+        self.passes[splurge['punter']] -= (len(claims) - 1)
+        rivers = []
+        last_river = None
+        for claim in claims:
+            river = self.claim(claim)
+            if river is None: break
+        if river is not None: return rivers
+        # if river is None, error occurred.
+        for river in rivers: del river['punter']
+        return None # error
+
+    def assert_punter(self, dic, punter_or_none):
+        if punter_or_none is None: return
+        assert dic['punter'] == punter_or_none.id
+
     # return corrected move
     def move(self, move, punter=None, logger=None, turn=None):
-        if logger is not None:
-            assert turn is not None
+        if logger is not None: assert turn is not None
 
         if 'claim' in move:
             claim = move['claim']
-            if punter is not None:
-                assert claim['punter'] == punter.id
-            rivers = [r for r in self.rivers
-                      if edges_equal(r, claim) and 'punter' not in r]
-            if len(rivers) == 1:
-                rivers[0]['punter'] = claim['punter']
-            else:
+            self.assert_punter(claim, punter)
+            if self.claim(claim) is None:
                 # error
                 if logger is not None: logger.warn(turn, move)
                 move = None
+
         elif 'pass' in move:
-            if punter is not None:
-                assert move['pass']['punter'] == punter.id
+            self.assert_punter(move['pass'], punter)
+
+        elif 'splurge' in move:
+            splurge = move['splurge']
+            self.assert_punter(splurge, punter)
+            if self.splurge(splurge) is None:
+                # error
+                if logger is not None: logger.warn(turn, move)
+                move = None
         else:
             # error
             if logger is not None: logger.warn(turn, move)
@@ -51,6 +88,12 @@ class Score:
                 logger.show('suspicious move',
                             {'turn': turn, 'name': punter.name})
             move = {'pass': {'punter': punter.id}, 'state': punter.state}
+
+        # count pass
+        if 'splurge' in self.settings:
+            assert move is not None
+            if 'pass' in move:
+                self.passes[move['pass']['punter']] += 1
 
         return move
 
