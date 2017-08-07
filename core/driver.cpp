@@ -53,7 +53,7 @@ void ParseMove(const Json& json, const Map& map,
             const SiteId target = map.ToSiteId((*claim)["target"]);
             const int punter = (*claim)["punter"];
             ai->HandleClaim(punter, {source, target});
-            (*moves)[punter] = {Move::Action::kClaim, {source, target}};
+            (*moves)[punter] = {kClaim, {source, target}};
             continue;
         }
         const auto splurge = e.find("splurge");
@@ -65,11 +65,20 @@ void ParseMove(const Json& json, const Map& map,
             for (size_t i = 1; i < route.size(); i++) {
                 ai->HandleClaim(punter, {route[i - 1], route[i]});
             }
-            (*moves)[punter] = {Move::Action::kSplurge, {}};
+            (*moves)[punter] = {kSplurge, {}};
             (*moves)[punter].route = std::move(route);
             continue;
         }
-        (*moves)[e["pass"]["punter"]] = {Move::Action::kPass, {}};
+        const auto option = e.find("option");
+        if (option != e.end()) {
+            const SiteId source = map.ToSiteId((*option)["source"]);
+            const SiteId target = map.ToSiteId((*option)["target"]);
+            const int punter = (*option)["punter"];
+            ai->HandleClaim(punter, {source, target});
+            (*moves)[punter] = {kOption, {source, target}};
+            continue;
+        }
+        (*moves)[e["pass"]["punter"]] = {kPass, {}};
     }
 }
 
@@ -95,18 +104,21 @@ void DoGameplay(AI* ai, Json&& json) {
     state["custom"] = ai->SaveState();
 
     switch (next_move.action) {
-        case Move::Action::kPass:
+        case kPass:
             Write({{"pass", {{"punter", id}}}, {"state", state}});
             break;
-        case Move::Action::kClaim: {
+        case kClaim:
+        case kOption: {
             const auto source = map.ToJsonId(next_move.river.source);
             const auto target = map.ToJsonId(next_move.river.target);
-            const Json claim = {
-                {"punter", id}, {"source", source}, {"target", target}};
-            Write({{"claim", claim}, {"state", state}});
+            const std::string key =
+                (next_move.action == kOption) ? "option" : "claim";
+            const Json value =
+                {{"punter", id}, {"source", source}, {"target", target}};
+            Write({{key, value}, {"state", state}});
             break;
         }
-        case Move::Action::kSplurge: {
+        case kSplurge: {
             Json route = Json::array();
             for (SiteId site : next_move.route)
                 route.push_back(map.ToJsonId(site));

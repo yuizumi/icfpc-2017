@@ -46,11 +46,11 @@ private:
 };
 
 struct Move {
-    enum class Action { kPass, kClaim, kSplurge };
+    enum class Action { kPass, kClaim, kSplurge, kOption };
     using Route = std::vector<SiteId>;
 
     Action action;
-    River river;  // kClaim のときだけ
+    River river;  // kClaim, kOption のときだけ
     Route route;  // kSplurge のときだけ
 
     Move(Action action, River river) : action(action), river(river) {}
@@ -94,7 +94,8 @@ public:
     // ゲームが始まる前の準備処理
     virtual void Setup() = 0;
 
-    // {"punter": punter} が river を claim した（ことを処理する）
+    // {"punter": punter} が river を取得したときの処理をする
+    // claim か option かは AI が判断する必要がある（splurge との都合）
     // splurge、timeout などにも対応している
     virtual void HandleClaim(int punter, const River& river) {}
 
@@ -107,5 +108,6 @@ public:
 constexpr Move::Action kPass = Move::Action::kPass;
 constexpr Move::Action kClaim = Move::Action::kClaim;
 constexpr Move::Action kSplurge = Move::Action::kSplurge;
+constexpr Move::Action kOption = Move::Action::kOption;
 
 #endif  // AI_H_
