@@ -13,7 +13,7 @@ def emulate(punter_clients, map_dict, logger):
     logger.start()
     logger.info('map', map_dict)
     punters = []
-    score = Score(map_dict, len(punters))
+    score = Score(map_dict, len(punter_clients))
 
     # setup
     for client in punter_clients:
