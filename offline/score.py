@@ -9,6 +9,9 @@ def floyd_warshall(graph):
             for j in range(n):
                 graph[i][j] = min(graph[i][j], graph[i][k] + graph[k][j])
 
+class InvalidMove(Exception):
+    pass
+
 class Score:
     def __init__(self, map_dict, punters):
         self.map = map_dict
@@ -26,13 +29,28 @@ class Score:
         for move in moves: self.move(move)
 
     def claim(self, claim):
-        rivers = [r for r in self.rivers
-                  if edges_equal(r, claim) and 'punter' not in r]
+        rivers = [r for r in self.rivers if edges_equal(r, claim)]
         if len(rivers) == 1:
+            if 'punter' in rivers[0]:
+                raise InvalidMove('Already claimed.')
             rivers[0]['punter'] = claim['punter']
             return rivers[0]
         else:
-            return None
+            raise InvalidMove(claim, 'River not found.')
+
+    def option(self, option):
+        rivers = [r for r in self.rivers if edges_equal(r, option)]
+        if len(rivers) == 1:
+            if 'punter' not in rivers[0]:
+                raise InvalidMove('Cannot option not-claimed river.')
+            if rivers[0]['punter'] == option['punter']:
+                raise InvalidMove('Cannot option river you claimed.')
+            if 'option' in rivers[0]:
+                raise InvalidMove('Already optioned.')
+            rivers[0]['option'] = option['punter']
+            return rivers[0]
+        else:
+            raise InvalidMove('River not found.')
 
     def option(self, option):
         rivers = [r for r in self.rivers
@@ -52,13 +70,16 @@ class Score:
             {'source': x[0], 'target': x[1],
              'punter': splurge['punter']}
             for x in zip(route[:-1], route[1:])]
-        if len(claims) < 1: return None
+        if len(claims) < 1:
+            raise InvalidMove('River not found.')
+
         if self.passes[splurge['punter']] < (len(claims) - 1):
             return None # error
         self.passes[splurge['punter']] -= (len(claims) - 1)
         rivers = []
         river = None
         for claim in claims:
+<<<<<<< HEAD
             river = self.claim(claim) or self.option(claim)
             if river is None: break
             rivers.append(river)
@@ -73,14 +94,30 @@ class Score:
             else:
                 del river['punter']
         return None # error
+=======
+            try:
+                river = self.claim(claim) or self.option(claim)
+                rivers.append(river)
+            except InvalidMove as e:
+                # rollback
+                for river in rivers:
+                    if 'option' in river:
+                        del river['option']
+                    else:
+                        del river['punter']
+                raise InvalidMove('In splurge:' + str(claim) + e.args[0])
+        return rivers
+>>>>>>> 83baaaa... Suspicious move reasons.
 
     def assert_punter(self, dic, punter_or_none):
         if punter_or_none is None: return
-        assert dic['punter'] == punter_or_none.id
+        if dic['punter'] != punter_or_none.id:
+            raise InvalidMove('Wrong punter id.')
 
     # return corrected move
     def move(self, move, punter=None, logger=None, turn=None):
         if logger is not None: assert turn is not None
+<<<<<<< HEAD
 
         if 'claim' in move:
             claim = move['claim']
@@ -109,17 +146,38 @@ class Score:
                 if logger is not None: logger.warn(turn, move)
                 move = None
         else:
+=======
+        try:
+            if 'claim' in move:
+                claim = move['claim']
+                self.assert_punter(claim, punter)
+                self.claim(claim)
+            elif 'pass' in move:
+                self.assert_punter(move['pass'], punter)
+            elif self.support('splurges') and 'splurge' in move:
+                splurge = move['splurge']
+                self.assert_punter(splurge, punter)
+                self.splurge(splurge)
+            elif self.support('options') and 'option' in move:
+                option = move['option']
+                self.assert_punter(option, punter)
+                self.option(option)
+            else:
+                raise InvalidMove('Not supported move.')
+        except InvalidMove as e:
+>>>>>>> 83baaaa... Suspicious move reasons.
             # error
-            if logger is not None: logger.warn(turn, move)
-            move = None
-
-        # fill errored move
-        if move is None and punter is not None:
             if logger is not None:
+                logger.warn(turn, move)
+                logger.warn(str(turn) + '-reason', e.args[0])
+                name = punter.name if punter is not None else ''
                 logger.show('suspicious move',
-                            {'turn': turn, 'name': punter.name})
-            move = {'pass': {'punter': punter.id}, 'state': punter.state}
-
+                            {'turn': turn, 'name': name, 'reason': e.args[0]})
+            # fill errored move
+            if punter is not None:
+                move = {'pass': {'punter': punter.id}, 'state': punter.state}
+            else:
+                move = None
         # count pass
         if self.support('splurges'):
             assert move is not None
