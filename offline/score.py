@@ -19,8 +19,8 @@ class Score:
         self.pre_calced = False
         self.settings = {'futures': False, 'splurges': True, 'options': True}
 
-    self support(self, name):
-        return settings[name]
+    def support(self, name):
+        return self.settings[name]
 
     def move_all(self, moves):
         for move in moves: self.move(move)
