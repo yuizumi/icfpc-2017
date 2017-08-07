@@ -44,15 +44,16 @@ void Write(const Json& json) {
     WriteString(json_str);
 }
 
-void ParseMove(const Json& json, const Map& map,
-               std::vector<Move>* moves, AI* ai) {
-    for (const auto& e : json["moves"]) {
+void ParseMoveTurn(const Json& json, const Map& map, int turn,
+                   std::vector<Move>* moves) {
+    int num = moves->size();
+    for (int i = 0; i < num; i++) {
+        const auto& e = json["moves"][i + turn * num];
         const auto claim = e.find("claim");
         if (claim != e.end()) {
             const SiteId source = map.ToSiteId((*claim)["source"]);
             const SiteId target = map.ToSiteId((*claim)["target"]);
             const int punter = (*claim)["punter"];
-            ai->HandleClaim(punter, {source, target});
             (*moves)[punter] = {kClaim, {source, target}};
             continue;
         }
@@ -62,9 +63,6 @@ void ParseMove(const Json& json, const Map& map,
             for (Map::JsonSiteId json_id : (*splurge)["route"])
                 route.push_back(map.ToSiteId(json_id));
             const int punter = (*splurge)["punter"];
-            for (size_t i = 1; i < route.size(); i++) {
-                ai->HandleClaim(punter, {route[i - 1], route[i]});
-            }
             (*moves)[punter] = {kSplurge, {}};
             (*moves)[punter].route = std::move(route);
             continue;
@@ -74,11 +72,37 @@ void ParseMove(const Json& json, const Map& map,
             const SiteId source = map.ToSiteId((*option)["source"]);
             const SiteId target = map.ToSiteId((*option)["target"]);
             const int punter = (*option)["punter"];
-            ai->HandleClaim(punter, {source, target});
             (*moves)[punter] = {kOption, {source, target}};
             continue;
         }
         (*moves)[e["pass"]["punter"]] = {kPass, {}};
+    }
+}
+
+void ParseMove(const Json& json, const Map& map, int punter_id,
+               std::vector<Move>* moves, AI* ai) {
+    int num_turns = json["moves"].size() / moves->size();
+    int num_punters = moves->size();
+    for (int turn = 0; turn < num_turns; turn++) {
+        ParseMoveTurn(json, map, turn, moves);
+        for (int i = 0; i < num_punters; i++) {
+            const int punter = (punter_id + i) % num_punters;
+            const Move& move = (*moves)[punter];
+            switch (move.action) {
+                case kPass:
+                    break;
+                case kClaim:
+                case kOption:
+                    ai->HandleClaim(punter, move.river);
+                    break;
+                case kSplurge:
+                    const auto& route = move.route;
+                    for (size_t i = 1; i < route.size(); i++) {
+                        ai->HandleClaim(punter, {route[i - 1], route[i]});
+                    }
+                    break;
+            }
+        }
     }
 }
 
@@ -100,7 +124,7 @@ void DoGameplay(AI* ai, Json&& json) {
     ai->Init(id, num_punters, &map, settings);
     ai->LoadState(std::move(state["custom"]));
     std::vector<Move> moves(num_punters);
-    ParseMove(json["move"], map, &moves, ai);
+    ParseMove(json["move"], map, id, &moves, ai);
     Move next_move = ai->Gameplay(moves);
     state["custom"] = ai->SaveState();
 
